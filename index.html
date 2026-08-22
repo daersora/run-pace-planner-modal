@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Run Pace Planner</title>
+    <link rel="stylesheet" href="simple-plan.css" />
+    <script src="simple-plan.js" defer></script>
+  </head>
+  <body>
+    <!-- GRAND TOTALS SUMMARY -->
+    <section class="totals-card">
+      <h3 class="totals-card__title">Total</h3>
+      <div class="totals-card__details">
+        <span class="totals-card__item" data-role="total-time"></span>
+        <span class="totals-card__item" data-role="total-pace"></span>
+        <span class="totals-card__item" data-role="total-distance"></span>
+        <button
+          class="btn btn--reset"
+          id="reset-plan-button"
+          data-role="reset-plan"
+        >
+          Reset
+        </button>
+      </div>
+    </section>
+    <!-- MAIN CONTAINER FOR SEGMENT CARDS -->
+    <main class="segment-list" id="paces-list">
+      <!-- SEGMENT CARD TEMPLATE -->
+      <article class="segment-card" data-role="segment">
+        <header class="segment-card__header">
+          <h3 class="segment-card__title" data-role="segment-title">
+            Segment 1
+          </h3>
+          <!-- REPEAT CONTROL -->
+          <div class="control-group" data-control-type="repeat">
+            <input
+              type="range"
+              min="1"
+              max="40"
+              step="1"
+              value="5"
+              class="control-group__slider"
+              data-role="slider"
+              aria-label="Segment Repeats"
+            />
+            <span class="control-group__output" data-role="output"></span>
+          </div>
+          <!-- HEADER SUMMARY (VISIBLE WHEN COLLAPSED) -->
+          <div
+            class="segment-card__header-summary"
+            data-role="header-summary"
+          ></div>
+          <!-- CARD COLLAPSE TOGGLE -->
+          <button
+            class="btn btn--secondary segment-card__toggle-btn"
+            data-role="close-card"
+            aria-label="Toggle segment details"
+          >
+            <svg class="icon-caret" viewBox="0 0 24 24" width="16" height="16">
+              <path fill="currentColor" d="M7 10l5 5 5-5z" />
+            </svg>
+          </button>
+        </header>
+        <div class="segment-card__intervals">
+          <!-- RUNNING INTERVAL BLOCK -->
+          <section
+            class="interval-block interval-block--run"
+            data-interval="run"
+          >
+            <h4 class="interval-block__title">Running</h4>
+            <!-- TIME -->
+            <div class="control-group" data-control-type="time">
+              <label class="control-group__label">Time</label>
+              <input
+                type="range"
+                min="60"
+                max="300"
+                step="15"
+                value="150"
+                class="control-group__slider"
+                data-role="slider"
+                aria-label="Run Time"
+              />
+              <span class="control-group__output" data-role="output"></span>
+            </div>
+            <!-- PACE -->
+            <div class="control-group" data-control-type="pace">
+              <label class="control-group__label">Pace</label>
+              <input
+                type="range"
+                min="300"
+                max="600"
+                step="15"
+                value="450"
+                class="control-group__slider"
+                data-role="slider"
+                aria-label="Run Pace"
+              />
+              <span class="control-group__output" data-role="output"></span>
+            </div>
+            <!-- DISTANCE -->
+            <span class="interval-block__distance" data-role="distance"></span>
+          </section>
+          <!-- WALKING INTERVAL BLOCK -->
+          <section
+            class="interval-block interval-block--walk"
+            data-interval="walk"
+          >
+            <h4 class="interval-block__title">Walking</h4>
+            <!-- TIME -->
+            <div class="control-group" data-control-type="time">
+              <label class="control-group__label">Time</label>
+              <input
+                type="range"
+                min="60"
+                max="300"
+                step="15"
+                value="150"
+                class="control-group__slider"
+                data-role="slider"
+                aria-label="Walk Time"
+              />
+              <span class="control-group__output" data-role="output"></span>
+            </div>
+            <!-- PACE -->
+            <div class="control-group" data-control-type="pace">
+              <label class="control-group__label">Pace</label>
+              <input
+                type="range"
+                min="600"
+                max="900"
+                step="15"
+                value="750"
+                class="control-group__slider"
+                data-role="slider"
+                aria-label="Walk Pace"
+              />
+              <span class="control-group__output" data-role="output"></span>
+            </div>
+            <!-- DISTANCE -->
+            <span class="interval-block__distance" data-role="distance"></span>
+          </section>
+        </div>
+        <!-- SEGMENT SUMMARY & ACTIONS -->
+        <footer class="segment-card__summary">
+          <div class="segment-card__summary-controls">
+            <span class="totals-card__item" data-role="segment-time"></span>
+            <span class="totals-card__item" data-role="segment-pace"></span>
+            <span class="totals-card__item" data-role="segment-distance"></span>
+            <button
+              class="segment-card__remove-btn"
+              data-role="delete-row"
+              disabled
+            >
+              Remove
+            </button>
+          </div>
+        </footer>
+      </article>
+    </main>
+    <!-- ACTIONS -->
+
+      <button
+        id="add-segment-button"
+        class="btn btn--primary"
+        data-role="add-segment"
+      >
+
+      Add New Segment
+    </button>
+    <!-- DEBUG CONVERTER -->
+    <div class="debug" style="display: none">
+      <input type="number" id="second-converter" data-role="debug-input" />
+      <span id="second-converted" data-role="debug-output"></span>
+    </div>
+  </body>
+</html>
