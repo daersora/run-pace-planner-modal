@@ -322,7 +322,7 @@ body {
 .segment-list,
 .totals-card {
   width: 100%;
-  max-width: 640px;
+  max-width: 800px;
 }
 
 .control-group__slider {

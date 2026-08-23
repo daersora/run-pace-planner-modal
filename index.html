@@ -10,9 +10,11 @@
   <body>
     <!-- GRAND TOTALS SUMMARY -->
     <!-- TODO: Enter Time and Distance Goal Trackers -->
+    <!-- TODOD: Add in save to save to localstorage -->
     <div class="pace-planner">
       <section class="totals-card">
         <h3 class="totals-card__title">Total</h3>
+        <button onclick="saveToStorage()">Save</button>
         <label for="distance-goal">Enter a Target Distance (km)</label
         ><input
           type="number"
@@ -50,7 +52,7 @@
         </div>
       </section>
       <!-- MAIN CONTAINER FOR SEGMENT CARDS -->
-      <!-- TODO: Add in Segment Type Run/Walk, Run, Walk -->
+
       <main class="segment-list" id="segment-list">
         <!-- POPULATES ON PAGE LOAD -->
       </main>
@@ -70,6 +72,7 @@
     </div> -->
     <template id="tpl-segment-card">
       <!-- SEGMENT CARD TEMPLATE -->
+      <!-- TODO: Add in Segment Type Run/Walk, Run, Walk -->
       <article class="segment-card" data-role="segment">
         <header class="segment-card__header">
           <h3 class="segment-card__title" data-role="segment-title">
@@ -85,10 +88,11 @@
             class="segment-card__segment-type-select"
             data-role="segment-type-select"
           >
-            <select name="" id="">
-              <option value="">Run/Walk</option>
-              <option value="">Run</option>
-              <option value="">Walk</option>
+            <span>Segment Type:</span
+            ><select name="" id="segment-type-selector">
+              <option value="run-walk">Run/Walk</option>
+              <option value="run-only">Run</option>
+              <option value="walk-only">Walk</option>
             </select>
           </div>
           <!-- CARD COLLAPSE TOGGLE -->

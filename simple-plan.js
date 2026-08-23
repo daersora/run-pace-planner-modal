@@ -1,4 +1,4 @@
-// SELECTORS
+// SELECTORS & CONSTANTS
 
 const segmentList = document.getElementById('segment-list');
 const addSegmentButton = document.getElementById('add-segment-button');
@@ -14,8 +14,7 @@ const grandTotalDistLabel = document.querySelector(
 );
 const grandTotalPaceLabel = document.querySelector('[data-role="total-pace"]');
 
-// HELPERS
-
+// Goal Button Shorthand
 const distanceGoalValues = {
   '5km-goal': 5,
   '10km-goal': 10,
@@ -23,6 +22,9 @@ const distanceGoalValues = {
   'full-goal': 42.2,
 };
 
+// HELPERS
+
+// Formatting Helpers
 function padTimeValues(input) {
   return String(input).padStart(2, '0');
 }
@@ -36,6 +38,7 @@ function formatTimes(totalSeconds) {
     : `${hours}:${minutes}:${seconds}`;
 }
 
+// Distance Pace Time Triangle
 function distance(paceSecs, timeSecs) {
   return timeSecs / paceSecs;
 }
@@ -52,8 +55,56 @@ function getSegments() {
   return document.querySelectorAll('[data-role="segment"]');
 }
 
+// DATA STORAGE AND STATE MANAGEMENT
+
+// When any other function needs to get out the data from a segment
+function getSegmentData() {
+  return Array.from(getSegments()).map((card) => ({
+    runTime: Number(
+      card.querySelector(
+        '[data-interval="run"] [data-control-type="time"] input',
+      ).value || 150,
+    ),
+    runPace: Number(
+      card.querySelector(
+        '[data-interval="run"] [data-control-type="pace"] input',
+      ).value || 450,
+    ),
+    walkTime: Number(
+      card.querySelector(
+        '[data-interval="walk"] [data-control-type="time"] input',
+      ).value || 150,
+    ),
+    walkPace: Number(
+      card.querySelector(
+        '[data-interval="walk"] [data-control-type="pace"] input',
+      ).value || 750,
+    ),
+    repeats: Number(
+      card.querySelector('[data-control-type="repeat"] input').value || 5,
+    ),
+  }));
+}
+
+// Saving and loading the plan state
+function saveToStorage() {
+  const jsonString = JSON.stringify(getSegmentData());
+  localStorage.setItem('runPacePlannerData', jsonString);
+}
+
+function loadFromStorage() {
+  const storedPlan = localStorage.getItem('runPacePlannerData');
+  if (!storedPlan) return false;
+  const parsedPlan = JSON.parse(storedPlan);
+  parsedPlan.forEach((segmentData) => {
+    createSegmentCard(segmentData);
+  });
+  return true;
+}
+
 // UI FUNCTIONS
 
+// Update the labels for sliders, including formatting
 function updateSliderLabel(slider) {
   const controlBox = slider.closest('.control-group');
   const outputLabel = controlBox.querySelector('[data-role="output"]');
@@ -68,6 +119,7 @@ function updateSliderLabel(slider) {
   }
 }
 
+// Update Segment Numbers
 function updateSegmentCalculations(segmentCard) {
   // 1. Run Calculations
   const runPace = Number(
@@ -122,13 +174,30 @@ function updateSegmentCalculations(segmentCard) {
   if (headerSummaryEl) {
     headerSummaryEl.textContent = `${formatTimes(segmentTimeSecs)} | ${formatTimes(segmentPaceSecs)} min/km | ${segmentDist.toFixed(2)} km`;
   }
-
   return { segmentTimeSecs, segmentDist };
 }
 
-function createSegmentCard() {
+// Create a New Segment Card
+function createSegmentCard(data = null) {
   if (!segmentTemplate) return;
-  clonedCard = segmentTemplate.content.cloneNode(true);
+  const clonedCard = segmentTemplate.content.cloneNode(true);
+  const cardElements = clonedCard.querySelector('[data-role="segment"]');
+  if (data) {
+    cardElements.querySelector(
+      '[data-interval="run"] [data-control-type="time"] input',
+    ).value = data.runTime;
+    cardElements.querySelector(
+      '[data-interval="run"] [data-control-type="pace"] input',
+    ).value = data.runPace;
+    cardElements.querySelector(
+      '[data-interval="walk"] [data-control-type="time"] input',
+    ).value = data.walkTime;
+    cardElements.querySelector(
+      '[data-interval="walk"] [data-control-type="pace"] input',
+    ).value = data.walkPace;
+    cardElements.querySelector('[data-control-type="repeat"] input').value =
+      data.repeats;
+  }
   segmentList.appendChild(clonedCard);
   const sliders = segmentList.querySelectorAll('[data-role="slider"]');
   sliders.forEach((slider) => updateSliderLabel(slider));
@@ -142,6 +211,7 @@ function setGoalDistance(input) {
   distanceSelection.value = outputValue;
 }
 
+// Update Total Card
 function updateGrandTotals(segments) {
   let totalTime = 0;
   let totalDist = 0;
@@ -184,6 +254,7 @@ function toggleCardVisibility(closeBtn) {
 }
 
 function resetPlan() {
+  localStorage.removeItem('runPacePlannerData');
   const currentSegments = getSegments();
   currentSegments.forEach((segment, index) => {
     if (index > 0) segment.remove();
@@ -207,7 +278,10 @@ function resetPlan() {
 }
 
 function init() {
-  createSegmentCard();
+  const hasLoadedData = loadFromStorage();
+  if (!hasLoadedData) {
+    createSegmentCard();
+  }
 }
 
 // EVENT LISTENERS
@@ -223,6 +297,7 @@ distanceSelectionButtons.addEventListener('click', (e) => {
 
 if (resetButton) {
   resetButton.addEventListener('click', resetPlan);
+
 }
 
 // Input Delegator for Sliders
@@ -230,6 +305,7 @@ segmentList.addEventListener('input', (e) => {
   if (e.target.dataset.role !== 'slider') return;
   updateSliderLabel(e.target);
   updateGrandTotals(getSegments());
+  saveToStorage();
 });
 
 // Click Delegator for Buttons
@@ -241,11 +317,13 @@ segmentList.addEventListener('click', (e) => {
   } else if (closeBtn) {
     toggleCardVisibility(closeBtn);
   }
+  saveToStorage();
 });
 
 // Add New Segment
 addSegmentButton.addEventListener('click', () => {
   createSegmentCard();
+  saveToStorage();
 });
 
 // INITIALIZATION
