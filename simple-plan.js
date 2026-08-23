@@ -1,8 +1,11 @@
 // SELECTORS
 
-const pacesList = document.getElementById('paces-list');
+const segmentList = document.getElementById('segment-list');
 const addSegmentButton = document.getElementById('add-segment-button');
 const resetButton = document.getElementById('reset-plan-button');
+const distanceSelection = document.getElementById('distance-goal-input');
+const distanceSelectionButtons = document.getElementById('distance-selectors');
+const segmentTemplate = document.getElementById('tpl-segment-card');
 
 // Grand Totals Labels
 const grandTotalTimeLabel = document.querySelector('[data-role="total-time"]');
@@ -12,6 +15,13 @@ const grandTotalDistLabel = document.querySelector(
 const grandTotalPaceLabel = document.querySelector('[data-role="total-pace"]');
 
 // HELPERS
+
+const distanceGoalValues = {
+  '5km-goal': 5,
+  '10km-goal': 10,
+  'half-goal': 21.1,
+  'full-goal': 42.2,
+};
 
 function padTimeValues(input) {
   return String(input).padStart(2, '0');
@@ -93,22 +103,19 @@ function updateSegmentCalculations(segmentCard) {
   const repeats = Number(
     segmentCard.querySelector('[data-control-type="repeat"] input').value,
   );
-  const segmentTimeSecs = (runTime + walkTime) * repeats;
-  const segmentDist = (runDist + walkDist) * repeats;
+  const repeatTimeSecs = runTime + walkTime;
+  const segmentTimeSecs = repeatTimeSecs * repeats;
+  const repeatDist = runDist + walkDist;
+  const segmentDist = repeatDist * repeats;
   const segmentPaceSecs = pace(segmentDist, segmentTimeSecs);
-  // 4. Update Segment Footer Labels
-  const segmentTimeEl = segmentCard.querySelector('[data-role="segment-time"]');
-  const segmentPaceEl = segmentCard.querySelector('[data-role="segment-pace"]');
-  const segmentDistEl = segmentCard.querySelector(
-    '[data-role="segment-distance"]',
+  // 4. Update Repeat Label
+  const repeatLabelEl = segmentCard.querySelector(
+    '.segment-card__repeat-summary',
   );
-  if (segmentTimeEl)
-    segmentTimeEl.textContent = `Time: ${formatTimes(segmentTimeSecs)}`;
-  if (segmentPaceEl)
-    segmentPaceEl.textContent = `Pace: ${formatTimes(segmentPaceSecs)} min/km`;
-  if (segmentDistEl)
-    segmentDistEl.textContent = `Distance: ${segmentDist.toFixed(2)} km`;
-  // 5. Update Header Summary Label (Collapsed View)
+  if (repeatLabelEl) {
+    repeatLabelEl.textContent = `Repeats: ${formatTimes(repeatTimeSecs)} | ${formatTimes(segmentPaceSecs)} min/km | ${repeatDist.toFixed(2)} km`;
+  }
+  // 5. Update Header Summary Label
   const headerSummaryEl = segmentCard.querySelector(
     '[data-role="header-summary"]',
   );
@@ -117,6 +124,22 @@ function updateSegmentCalculations(segmentCard) {
   }
 
   return { segmentTimeSecs, segmentDist };
+}
+
+function createSegmentCard() {
+  if (!segmentTemplate) return;
+  clonedCard = segmentTemplate.content.cloneNode(true);
+  segmentList.appendChild(clonedCard);
+  const sliders = segmentList.querySelectorAll('[data-role="slider"]');
+  sliders.forEach((slider) => updateSliderLabel(slider));
+  const currentSegments = getSegments();
+  renumberSegments(currentSegments);
+  updateGrandTotals(currentSegments);
+}
+
+function setGoalDistance(input) {
+  const outputValue = distanceGoalValues[input];
+  distanceSelection.value = outputValue;
 }
 
 function updateGrandTotals(segments) {
@@ -157,18 +180,7 @@ function removeSegment(segment) {
 
 function toggleCardVisibility(closeBtn) {
   const card = closeBtn.closest('[data-role="segment"]');
-  const intervals = card.querySelector('.segment-card__intervals');
-  const summary = card.querySelector('.segment-card__summary');
-  const isCollapsed = card.classList.contains('segment-card--collapsed');
-  if (isCollapsed) {
-    intervals.style.display = '';
-    summary.style.display = '';
-    card.classList.remove('segment-card--collapsed');
-  } else {
-    intervals.style.display = 'none';
-    summary.style.display = 'none';
-    card.classList.add('segment-card--collapsed');
-  }
+  card.classList.toggle('segment-card--collapsed');
 }
 
 function resetPlan() {
@@ -188,37 +200,40 @@ function resetPlan() {
     }
     updateSliderLabel(slider);
   });
-  const intervals = firstSegment.querySelector('.segment-card__intervals');
   firstSegment.classList.remove('segment-card--collapsed');
-  if (intervals) intervals.style.display = '';
   const remainingSegments = getSegments();
   updateGrandTotals(remainingSegments);
   renumberSegments(remainingSegments);
 }
 
 function init() {
-  const sliders = pacesList.querySelectorAll('[data-role="slider"]');
-  sliders.forEach((slider) => updateSliderLabel(slider));
-  const currentSegments = getSegments();
-  updateGrandTotals(currentSegments);
-  renumberSegments(currentSegments);
+  createSegmentCard();
 }
 
 // EVENT LISTENERS
+
+distanceSelectionButtons.addEventListener('click', (e) => {
+  const target = e.target;
+  if (!e.target.matches('button')) {
+    return;
+  }
+  const buttonID = target.id;
+  setGoalDistance(buttonID);
+});
 
 if (resetButton) {
   resetButton.addEventListener('click', resetPlan);
 }
 
 // Input Delegator for Sliders
-pacesList.addEventListener('input', (e) => {
+segmentList.addEventListener('input', (e) => {
   if (e.target.dataset.role !== 'slider') return;
   updateSliderLabel(e.target);
   updateGrandTotals(getSegments());
 });
 
 // Click Delegator for Buttons
-pacesList.addEventListener('click', (e) => {
+segmentList.addEventListener('click', (e) => {
   const deleteBtn = e.target.closest('[data-role="delete-row"]');
   const closeBtn = e.target.closest('[data-role="close-card"]');
   if (deleteBtn) {
@@ -230,15 +245,7 @@ pacesList.addEventListener('click', (e) => {
 
 // Add New Segment
 addSegmentButton.addEventListener('click', () => {
-  const sourceRow = document.querySelector('[data-role="segment"]');
-  const clonedRow = sourceRow.cloneNode(true);
-  const intervals = clonedRow.querySelector('.segment-card__intervals');
-  clonedRow.classList.remove('segment-card--collapsed');
-  if (intervals) intervals.style.display = '';
-  pacesList.appendChild(clonedRow);
-  const currentSegments = getSegments();
-  updateGrandTotals(currentSegments);
-  renumberSegments(currentSegments);
+  createSegmentCard();
 });
 
 // INITIALIZATION

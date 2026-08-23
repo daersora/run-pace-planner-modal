@@ -9,57 +9,95 @@
   </head>
   <body>
     <!-- GRAND TOTALS SUMMARY -->
-    <section class="totals-card">
-      <h3 class="totals-card__title">Total</h3>
-      <div class="totals-card__details">
-        <span class="totals-card__item" data-role="total-time"></span>
-        <span class="totals-card__item" data-role="total-pace"></span>
-        <span class="totals-card__item" data-role="total-distance"></span>
-        <button
-          class="btn btn--reset"
-          id="reset-plan-button"
-          data-role="reset-plan"
-        >
-          Reset
-        </button>
-      </div>
-    </section>
-    <!-- MAIN CONTAINER FOR SEGMENT CARDS -->
-    <main class="segment-list" id="paces-list">
+    <!-- TODO: Enter Time and Distance Goal Trackers -->
+    <div class="pace-planner">
+      <section class="totals-card">
+        <h3 class="totals-card__title">Total</h3>
+        <label for="distance-goal">Enter a Target Distance (km)</label
+        ><input
+          type="number"
+          name="distance-goal"
+          id="distance-goal-input"
+          min="1"
+          max="50"
+          step="0.1"
+        />
+        <div data-role="distance-selection" id="distance-selectors">
+          <button class="btn btn--secondary btn--text" id="5km-goal">
+            5km
+          </button>
+          <button class="btn btn--secondary btn--text" id="10km-goal">
+            10km
+          </button>
+          <button class="btn btn--secondary btn--text" id="half-goal">
+            Half Marathon
+          </button>
+          <button class="btn btn--secondary btn--text" id="full-goal">
+            Marathon
+          </button>
+        </div>
+        <div class="totals-card__details">
+          <span class="totals-card__item" data-role="total-time"></span>
+          <span class="totals-card__item" data-role="total-pace"></span>
+          <span class="totals-card__item" data-role="total-distance"></span>
+          <button
+            class="btn btn--reset btn--icon btn--secondary"
+            id="reset-plan-button"
+            data-role="reset-plan"
+          >
+            <span class="icon-reset">↺</span>
+          </button>
+        </div>
+      </section>
+      <!-- MAIN CONTAINER FOR SEGMENT CARDS -->
+      <!-- TODO: Add in Segment Type Run/Walk, Run, Walk -->
+      <main class="segment-list" id="segment-list">
+        <!-- POPULATES ON PAGE LOAD -->
+      </main>
+    </div>
+    <!-- ACTIONS -->
+    <button
+      id="add-segment-button"
+      class="btn btn--primary btn--text"
+      data-role="add-segment"
+    >
+      Add New Segment
+    </button>
+    <!-- DEBUG CONVERTER -->
+    <!-- <div class="debug" style="display: none">
+      <input type="number" id="second-converter" data-role="debug-input" />
+      <span id="second-converted" data-role="debug-output"></span>
+    </div> -->
+    <template id="tpl-segment-card">
       <!-- SEGMENT CARD TEMPLATE -->
       <article class="segment-card" data-role="segment">
         <header class="segment-card__header">
           <h3 class="segment-card__title" data-role="segment-title">
             Segment 1
           </h3>
-          <!-- REPEAT CONTROL -->
-          <div class="control-group" data-control-type="repeat">
-            <input
-              type="range"
-              min="1"
-              max="40"
-              step="1"
-              value="5"
-              class="control-group__slider"
-              data-role="slider"
-              aria-label="Segment Repeats"
-            />
-            <span class="control-group__output" data-role="output"></span>
-          </div>
-          <!-- HEADER SUMMARY (VISIBLE WHEN COLLAPSED) -->
+          <!-- HEADER SUMMARY -->
           <div
             class="segment-card__header-summary"
             data-role="header-summary"
           ></div>
+          <!-- SEGMENT TYPE SELECT -->
+          <div
+            class="segment-card__segment-type-select"
+            data-role="segment-type-select"
+          >
+            <select name="" id="">
+              <option value="">Run/Walk</option>
+              <option value="">Run</option>
+              <option value="">Walk</option>
+            </select>
+          </div>
           <!-- CARD COLLAPSE TOGGLE -->
           <button
-            class="btn btn--secondary segment-card__toggle-btn"
+            class="btn btn--secondary segment-card__toggle-btn btn--icon"
             data-role="close-card"
             aria-label="Toggle segment details"
           >
-            <svg class="icon-caret" viewBox="0 0 24 24" width="16" height="16">
-              <path fill="currentColor" d="M7 10l5 5 5-5z" />
-            </svg>
+            <span class="icon-caret" data-role="toggle-icon">▾</span>
           </button>
         </header>
         <div class="segment-card__intervals">
@@ -142,37 +180,36 @@
             <span class="interval-block__distance" data-role="distance"></span>
           </section>
         </div>
-        <!-- SEGMENT SUMMARY & ACTIONS -->
+        <!-- REPEAT SUMMARY & ACTIONS -->
         <footer class="segment-card__summary">
           <div class="segment-card__summary-controls">
-            <span class="totals-card__item" data-role="segment-time"></span>
-            <span class="totals-card__item" data-role="segment-pace"></span>
-            <span class="totals-card__item" data-role="segment-distance"></span>
+            <span class="segment-card__repeat-summary"
+              >Repeats : 05:00 | 09:22 min/km | 2.67 km</span
+            >
+            <!-- REPEAT CONTROL -->
+            <div class="control-group" data-control-type="repeat">
+              <input
+                type="range"
+                min="1"
+                max="40"
+                step="1"
+                value="5"
+                class="control-group__slider"
+                data-role="slider"
+                aria-label="Segment Repeats"
+              />
+              <span class="control-group__output" data-role="output"></span>
+            </div>
             <button
-              class="segment-card__remove-btn"
+              class="btn segment-card__remove-btn btn--icon"
               data-role="delete-row"
               disabled
             >
-              Remove
+              X
             </button>
           </div>
         </footer>
       </article>
-    </main>
-    <!-- ACTIONS -->
-
-      <button
-        id="add-segment-button"
-        class="btn btn--primary"
-        data-role="add-segment"
-      >
-
-      Add New Segment
-    </button>
-    <!-- DEBUG CONVERTER -->
-    <div class="debug" style="display: none">
-      <input type="number" id="second-converter" data-role="debug-input" />
-      <span id="second-converted" data-role="debug-output"></span>
-    </div>
+    </template>
   </body>
 </html>
