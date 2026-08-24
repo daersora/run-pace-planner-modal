@@ -13,6 +13,10 @@ const grandTotalDistLabel = document.querySelector(
   '[data-role="total-distance"]',
 );
 const grandTotalPaceLabel = document.querySelector('[data-role="total-pace"]');
+const distanceProgressFill = document.getElementById('distance-progress-fill');
+const distanceProgressLabel = document.getElementById(
+  'distance-progress-label',
+);
 
 // Goal Button Shorthand
 const distanceGoalValues = {
@@ -227,6 +231,51 @@ function updateGrandTotals(segments) {
     grandTotalPaceLabel.textContent = `Pace: ${totalPace} min/km`;
   if (grandTotalTimeLabel)
     grandTotalTimeLabel.textContent = `Time: ${formatTimes(totalTime)}`;
+
+  const targetDist = parseFloat(distanceSelection.value) || 0;
+
+  if (targetDist > 0) {
+    const targetPercent = (totalDist / targetDist) * 100;
+    const clampedPercent = Math.min(100, targetPercent);
+    // Progress Colours
+    let hue = 0;
+    if (targetPercent <= 25) {
+      // 0% -> 25%: Red (0) to Orange (30)
+      const t = targetPercent / 25;
+      hue = 0 + t * (30 - 0);
+    } else if (targetPercent <= 75) {
+      // 25% -> 75%: Orange (30) to Yellow (60)
+      const t = (targetPercent - 25) / 50;
+      hue = 30 + t * (60 - 30);
+    } else if (targetPercent <= 100) {
+      // 75% -> 100%: Yellow (60) to Green (120)
+      const t = (targetPercent - 75) / 25;
+      hue = 60 + t * (120 - 60);
+    } else if (targetPercent <= 125) {
+      // 100% -> 125%: Green (120) back down to Red (0)
+      const t = (targetPercent - 100) / 25;
+      hue = 120 - t * (120 - 0);
+    } else {
+      // 125%+: Hold at Solid Red
+      hue = 0;
+    }
+    if (distanceProgressFill) {
+      distanceProgressFill.style.width = `${clampedPercent}%`;
+      distanceProgressFill.style.backgroundColor = `hsl(${hue}, 80%, 50%)`;
+    }
+    if (distanceProgressLabel) {
+      if (targetPercent > 100) {
+        const extraKm = (totalDist - targetDist).toFixed(2);
+        distanceProgressLabel.textContent = `${targetPercent.toFixed(1)}% (+${extraKm} km over target!)`;
+      } else {
+        distanceProgressLabel.textContent = `${targetPercent.toFixed(1)}% of ${targetDist} km`;
+      }
+    }
+  } else {
+    if (distanceProgressFill) distanceProgressFill.style.width = '0%';
+    if (distanceProgressLabel)
+      distanceProgressLabel.textContent = 'Set a goal distance';
+  }
 }
 
 function renumberSegments(segments) {
@@ -293,11 +342,11 @@ distanceSelectionButtons.addEventListener('click', (e) => {
   }
   const buttonID = target.id;
   setGoalDistance(buttonID);
+  updateGrandTotals(getSegments());
 });
 
 if (resetButton) {
   resetButton.addEventListener('click', resetPlan);
-
 }
 
 // Input Delegator for Sliders
