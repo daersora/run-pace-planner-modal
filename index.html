@@ -8,63 +8,57 @@
     <script src="simple-plan.js" defer></script>
   </head>
   <body>
-    <!-- GRAND TOTALS SUMMARY -->
-    <!-- TODO: Enter Time and Distance Goal Trackers -->
-    <!-- TODOD: Add in save to save to localstorage -->
     <div class="pace-planner">
       <section class="totals-card">
-        <h3 class="totals-card__title">Total</h3>
+        <!-- Title -->
+        <h3 class="totals-card__title">Totals and Targets</h3>
+        <!-- Summary -->
         <div class="totals-card__details">
-          <span class="totals-card__item" data-role="total-time"></span>
-          <span class="totals-card__item" data-role="total-pace"></span>
-          <span class="totals-card__item" data-role="total-distance"></span>
+          <span class="totals-card__item" data-role="total-time">Time: 05:00</span>
+          <span class="totals-card__item" data-role="total-pace">Pace: 07:32 min/km</span>
+          <span class="totals-card__item" data-role="total-distance">Distance 7.00 km</span>
+          <!-- Reset Button -->
           <button
             class="btn btn--reset btn--icon btn--secondary"
             id="reset-plan-button"
-            data-role="reset-plan"
-          >
+            data-role="reset-plan">
             <span class="icon-reset">↺</span>
           </button>
         </div>
-        <div class="target-and-progress">
-          <div class="target-inputs">
-            <label for="distance-goal">Target Distance (km) </label
-            ><input
+
+        <!-- Target Selection Row -->
+        <div class="totals-card__targets">
+          <!-- Manual Input -->
+          <span class="totals-card__field">
+            <label for="distance-goal-input" class="totals-card__label">Target Distance (km)</label>
+            <input
               type="number"
-              name="distance-goal"
+              name="distance-goal-input"
               id="distance-goal-input"
+              class="totals-card__input"
               min="1"
               max="50"
-              step="0.1"
-            />
-            <span data-role="distance-selection" id="distance-selectors">
-              <button class="btn btn--secondary btn--text" id="5km-goal">
-                5km
-              </button>
-              <button class="btn btn--secondary btn--text" id="10km-goal">
-                10km
-              </button>
-              <button class="btn btn--secondary btn--text" id="half-goal">
-                Half Marathon
-              </button>
-              <button class="btn btn--secondary btn--text" id="full-goal">
-                Marathon
-              </button>
-            </span>
+              step="0.1" />
+          </span>
+          <!-- Standard Distance Selectors -->
+          <span
+            class="totals-card__presets"
+            data-role="target-distance-selection"
+            id="distance-presets">
+            <button class="btn btn--secondary btn--text" id="5km-goal">5km</button>
+            <button class="btn btn--secondary btn--text" id="10km-goal">10km</button>
+            <button class="btn btn--secondary btn--text" id="half-goal">Half Marathon</button>
+            <button class="btn btn--secondary btn--text" id="full-goal">Marathon</button>
+          </span>
+        </div>
+        <div class="totals-card__progress">
+          <div class="progress-bar">
+            <div class="progress-bar__fill" id="distance-progress-fill"></div>
           </div>
-          <div class="totals-card__progress">
-            <div class="progress-bar-container">
-              <div class="progress-bar">
-                <div
-                  class="progress-bar__fill"
-                  id="distance-progress-fill"
-                ></div>
-              </div>
-              <span id="distance-progress-label">0%</span>
-            </div>
-          </div>
+          <span class="progress-bar__label" id="distance-progress-label">0%</span>
         </div>
       </section>
+
       <!-- MAIN CONTAINER FOR SEGMENT CARDS -->
 
       <main class="segment-list" id="segment-list">
@@ -72,11 +66,7 @@
       </main>
     </div>
     <!-- ACTIONS -->
-    <button
-      id="add-segment-button"
-      class="btn btn--primary btn--text"
-      data-role="add-segment"
-    >
+    <button id="add-segment-button" class="btn btn--primary btn--text" data-role="add-segment">
       Add New Segment
     </button>
     <!-- DEBUG CONVERTER -->
@@ -89,21 +79,13 @@
       <!-- TODO: Add in Segment Type Run/Walk, Run, Walk -->
       <article class="segment-card" data-role="segment">
         <header class="segment-card__header">
-          <h3 class="segment-card__title" data-role="segment-title">
-            Segment 1
-          </h3>
+          <h3 class="segment-card__title" data-role="segment-title">Segment 1</h3>
           <!-- HEADER SUMMARY -->
-          <div
-            class="segment-card__header-summary"
-            data-role="header-summary"
-          ></div>
+          <div class="segment-card__header-summary" data-role="header-summary"></div>
           <!-- SEGMENT TYPE SELECT -->
-          <div
-            class="segment-card__segment-type-select"
-            data-role="segment-type-select"
-          >
-            <span>Segment Type:</span
-            ><select name="" id="segment-type-selector">
+          <div class="segment-card__segment-type-select" data-role="segment-type-select">
+            <span>Segment Type:</span>
+            <select name="" id="segment-type-selector">
               <option value="run-walk">Run/Walk</option>
               <option value="run-only">Run</option>
               <option value="walk-only">Walk</option>
@@ -113,17 +95,13 @@
           <button
             class="btn btn--secondary segment-card__toggle-btn btn--icon"
             data-role="close-card"
-            aria-label="Toggle segment details"
-          >
+            aria-label="Toggle segment details">
             <span class="icon-caret" data-role="toggle-icon">▾</span>
           </button>
         </header>
         <div class="segment-card__intervals">
           <!-- RUNNING INTERVAL BLOCK -->
-          <section
-            class="interval-block interval-block--run"
-            data-interval="run"
-          >
+          <section class="interval-block interval-block--run" data-interval="run">
             <h4 class="interval-block__title">Running</h4>
             <!-- TIME -->
             <div class="control-group" data-control-type="time">
@@ -136,8 +114,7 @@
                 value="150"
                 class="control-group__slider"
                 data-role="slider"
-                aria-label="Run Time"
-              />
+                aria-label="Run Time" />
               <span class="control-group__output" data-role="output"></span>
             </div>
             <!-- PACE -->
@@ -151,18 +128,14 @@
                 value="450"
                 class="control-group__slider"
                 data-role="slider"
-                aria-label="Run Pace"
-              />
+                aria-label="Run Pace" />
               <span class="control-group__output" data-role="output"></span>
             </div>
             <!-- DISTANCE -->
             <span class="interval-block__distance" data-role="distance"></span>
           </section>
           <!-- WALKING INTERVAL BLOCK -->
-          <section
-            class="interval-block interval-block--walk"
-            data-interval="walk"
-          >
+          <section class="interval-block interval-block--walk" data-interval="walk">
             <h4 class="interval-block__title">Walking</h4>
             <!-- TIME -->
             <div class="control-group" data-control-type="time">
@@ -175,8 +148,7 @@
                 value="150"
                 class="control-group__slider"
                 data-role="slider"
-                aria-label="Walk Time"
-              />
+                aria-label="Walk Time" />
               <span class="control-group__output" data-role="output"></span>
             </div>
             <!-- PACE -->
@@ -190,8 +162,7 @@
                 value="750"
                 class="control-group__slider"
                 data-role="slider"
-                aria-label="Walk Pace"
-              />
+                aria-label="Walk Pace" />
               <span class="control-group__output" data-role="output"></span>
             </div>
             <!-- DISTANCE -->
@@ -201,9 +172,9 @@
         <!-- REPEAT SUMMARY & ACTIONS -->
         <footer class="segment-card__summary">
           <div class="segment-card__summary-controls">
-            <span class="segment-card__repeat-summary"
-              >Repeats : 05:00 | 09:22 min/km | 2.67 km</span
-            >
+            <span class="segment-card__repeat-summary">
+              Repeats : 05:00 | 09:22 min/km | 2.67 km
+            </span>
             <!-- REPEAT CONTROL -->
             <div class="control-group" data-control-type="repeat">
               <input
@@ -214,15 +185,10 @@
                 value="5"
                 class="control-group__slider"
                 data-role="slider"
-                aria-label="Segment Repeats"
-              />
+                aria-label="Segment Repeats" />
               <span class="control-group__output" data-role="output"></span>
             </div>
-            <button
-              class="btn segment-card__remove-btn btn--icon"
-              data-role="delete-row"
-              disabled
-            >
+            <button class="btn segment-card__remove-btn btn--icon" data-role="delete-row" disabled>
               X
             </button>
           </div>

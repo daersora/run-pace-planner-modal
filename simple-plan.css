@@ -1,5 +1,5 @@
 /* ==========================================================================
-   1. COLOR VARIABLES & RESET
+   1. GLOBAL VARIABLES
    ========================================================================== */
 :root {
   /* Brand Colors */
@@ -166,6 +166,80 @@ body {
 }
 
 /* ==========================================================================
+   4. TOTALS CARD
+   ========================================================================== */
+
+.totals-card__title {
+  color: var(--color-primary-dark);
+  font-size: 1.15rem;
+  padding-top: 1rem;
+}
+
+/* Summary and reset button flex layout */
+.totals-card__details {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-weight: 500;
+  font-size: 0.925rem;
+  padding-bottom: 16px;
+}
+
+.totals-card__item {
+  white-space: nowrap;
+}
+
+/* Target Inputs */
+.totals-card__targets {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.totals-card__label {
+  font-weight: 600;
+}
+
+.totals-card__input {
+  height: 1.5rem;
+  font-size: 1rem;
+}
+
+.totals-card__presets {
+  margin-left: auto;
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+/* Progress Bar */
+.progress-bar__label {
+  font-style: italic;
+}
+
+.totals-card__progress {
+  margin-top: 1rem;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 12px;
+  background-color: #e0e0e0;
+  border-radius: 6px;
+  overflow: hidden;
+  border: var(--color-border-dark) 1px solid;
+}
+
+.progress-bar__fill {
+  height: 100%;
+  width: 0%;
+  transition: width 0.3s ease;
+}
+
+/* ==========================================================================
    4. SEGMENT INTERNAL LAYOUT & INTERVALS
    ========================================================================== */
 
@@ -178,7 +252,6 @@ body {
   border-top: 1px solid var(--color-border);
 }
 
-.totals-card__title,
 .segment-card__title {
   color: var(--color-primary-dark);
   font-size: 1.15rem;
@@ -249,21 +322,6 @@ body {
    5. INDEPENDENT GRID & FLEX LAYOUTS
    ========================================================================== */
 
-/* TOTALS CARD (Flexbox Layout) */
-.totals-card__details {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  font-weight: 500;
-  font-size: 0.925rem;
-  padding-bottom: 16px;
-}
-
-.totals-card__item {
-  white-space: nowrap;
-}
-
 /* SEGMENT FOOTER SUMMARY (4-Column CSS Grid Layout) */
 .segment-card__summary-controls {
   display: grid;
@@ -298,9 +356,7 @@ body {
   text-align: left;
 }
 
-.segment-card__summary-controls
-  .control-group[data-control-type='repeat']
-  .control-group__slider {
+.segment-card__summary-controls .control-group[data-control-type='repeat'] .control-group__slider {
   accent-color: var(--color-primary);
 }
 
@@ -308,30 +364,6 @@ body {
 .segment-card__remove-btn {
   grid-column: 4;
   justify-self: end;
-}
-
-.target-inputs {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.target-inputs > label {
-  font-weight: 600;
-}
-.target-inputs > input {
-  height: 1.5rem;
-  font-size: 1rem;
-}
-
-#distance-progress-label {
-  font-style: italic;
-}
-
-#distance-selectors {
-  margin-left: auto;
-  display: flex;
-  gap: 0.5rem;
 }
 
 /* ==========================================================================
@@ -401,6 +433,21 @@ body {
     gap: 8px 12px;
   }
 
+  .totals-card__targets {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .totals-card__presets {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .totals-card__presets .btn {
+    flex: 1 1 auto;
+    text-align: center;
+  }
+
   .btn--reset {
     grid-column: 2;
     justify-self: end;
@@ -440,23 +487,4 @@ body {
     width: 100%;
     margin-top: 4px;
   }
-}
-
-.totals-card__progress {
-  margin-top: 1rem;
-}
-
-.progress-bar {
-  width: 100%;
-  height: 12px;
-  background-color: #e0e0e0;
-  border-radius: 6px;
-  overflow: hidden;
-  border: var(--color-border-dark) 1px solid;
-}
-
-.progress-bar__fill {
-  height: 100%;
-  width: 0%;
-  transition: width 0.3s ease;
 }
