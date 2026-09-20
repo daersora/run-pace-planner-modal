@@ -488,3 +488,7 @@ body {
     margin-top: 4px;
   }
 }
+
+.hidden {
+  display: none;
+}

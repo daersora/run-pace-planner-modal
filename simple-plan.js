@@ -23,6 +23,12 @@ const distanceGoalValues = {
   'full-goal': 42.2,
 };
 
+// Slider Presets
+const timeLimits = {
+  single: { min: 60, max: 600, step: 30, value: 300 },
+  combined: { min: 60, max: 300, step: 15, value: 150 },
+};
+
 // HELPERS
 
 // Formatting Helpers
@@ -39,11 +45,11 @@ function formatTimes(totalSeconds) {
 
 // Distance Pace Time Triangle
 function distance(paceSecs, timeSecs) {
-  return timeSecs / paceSecs;
+  return paceSecs > 0 ? timeSecs / paceSecs : 0;
 }
 
 function pace(distKm, timeSecs) {
-  return distKm > 0 ? timeSecs / distKm : 0;
+  return distKm > 0 ? Math.round(timeSecs / distKm) : 0;
 }
 
 function time(distKm, paceSecs) {
@@ -58,21 +64,25 @@ function getSegments() {
 
 // When any other function needs to get out the data from a segment
 function getSegmentData() {
-  return Array.from(getSegments()).map((card) => ({
-    runTime: Number(
-      card.querySelector('[data-interval="run"] [data-control-type="time"] input').value || 150,
-    ),
-    runPace: Number(
-      card.querySelector('[data-interval="run"] [data-control-type="pace"] input').value || 450,
-    ),
-    walkTime: Number(
-      card.querySelector('[data-interval="walk"] [data-control-type="time"] input').value || 150,
-    ),
-    walkPace: Number(
-      card.querySelector('[data-interval="walk"] [data-control-type="pace"] input').value || 750,
-    ),
-    repeats: Number(card.querySelector('[data-control-type="repeat"] input').value || 5),
-  }));
+  return Array.from(getSegments()).map((card) => {
+    const selector = card.querySelector('.segment-type-selector');
+    return {
+      segmentType: selector ? selector.value : 'run-walk',
+      runTime: Number(
+        card.querySelector('[data-interval="run"] [data-control-type="time"] input')?.value || 150,
+      ),
+      runPace: Number(
+        card.querySelector('[data-interval="run"] [data-control-type="pace"] input')?.value || 450,
+      ),
+      walkTime: Number(
+        card.querySelector('[data-interval="walk"] [data-control-type="time"] input')?.value || 150,
+      ),
+      walkPace: Number(
+        card.querySelector('[data-interval="walk"] [data-control-type="pace"] input')?.value || 750,
+      ),
+      repeats: Number(card.querySelector('[data-control-type="repeat"] input')?.value || 5),
+    };
+  });
 }
 
 // Saving and loading the plan state
@@ -93,12 +103,48 @@ function loadFromStorage() {
 
 // UI FUNCTIONS
 
+// Progress Bar
+function calculateProgressHue(percent) {
+  if (percent <= 25) return (percent / 25) * 30;
+  if (percent <= 75) return 30 + ((percent - 25) / 50) * 30;
+  if (percent <= 100) return 60 + ((percent - 75) / 25) * 60;
+  if (percent <= 125) return 120 - ((percent - 100) / 25) * 120;
+  return 0;
+}
+
+function updateProgressBar(totalDist, targetDist) {
+  if (!distanceProgressFill || targetDist <= 0) {
+    if (distanceProgressFill) distanceProgressFill.style.width = '0%';
+    if (distanceProgressLabel) distanceProgressLabel.textContent = 'Set a goal distance';
+    return;
+  }
+
+  const targetPercent = (totalDist / targetDist) * 100;
+  const clampedPercent = Math.min(100, targetPercent);
+  const extraKm = (totalDist - targetDist).toFixed(2);
+  const hue = calculateProgressHue(targetPercent);
+
+  distanceProgressFill.style.width = `${clampedPercent}%`;
+  distanceProgressFill.style.backgroundColor = `hsl(${hue}, 80%, 50%)`;
+
+  if (distanceProgressLabel) {
+    distanceProgressLabel.textContent =
+      targetPercent > 100
+        ? `${targetPercent.toFixed(1)}% (+${extraKm} km over target!)`
+        : `${targetPercent.toFixed(1)}% of ${targetDist} km`;
+  }
+}
+
 // Update the labels for sliders, including formatting
 function updateSliderLabel(slider) {
   const controlBox = slider.closest('.control-group');
+  if (!controlBox) return;
   const outputLabel = controlBox.querySelector('[data-role="output"]');
+  if (!outputLabel) return;
+
   const val = Number(slider.value);
   const controlType = controlBox.dataset.controlType;
+
   if (controlType === 'pace') {
     outputLabel.textContent = `${formatTimes(val)} min/km`;
   } else if (controlType === 'time') {
@@ -108,45 +154,65 @@ function updateSliderLabel(slider) {
   }
 }
 
+function updateTimeSliders(segmentParent, isSingleMode) {
+  const limits = isSingleMode ? timeLimits.single : timeLimits.combined;
+
+  const timeSliders = segmentParent.querySelectorAll(
+    '[data-control-type="time"] [data-role="slider"]',
+  );
+
+  timeSliders.forEach((slider) => {
+    slider.min = limits.min;
+    slider.max = limits.max;
+    slider.step = limits.step;
+    slider.value = limits.value;
+    updateSliderLabel(slider);
+  });
+}
+
 // Update Segment Numbers
 function updateSegmentCalculations(segmentCard) {
-  // 1. Run Calculations
-  const runPace = Number(
-    segmentCard.querySelector('[data-interval="run"] [data-control-type="pace"] input').value,
-  );
-  const runTime = Number(
-    segmentCard.querySelector('[data-interval="run"] [data-control-type="time"] input').value,
-  );
-  const runDist = distance(runPace, runTime);
-  segmentCard.querySelector('[data-interval="run"] [data-role="distance"]').textContent =
-    `Distance ${runDist.toFixed(2)} km`;
-  // 2. Walk Calculations
-  const walkPace = Number(
-    segmentCard.querySelector('[data-interval="walk"] [data-control-type="pace"] input').value,
-  );
-  const walkTime = Number(
-    segmentCard.querySelector('[data-interval="walk"] [data-control-type="time"] input').value,
-  );
-  const walkDist = distance(walkPace, walkTime);
-  segmentCard.querySelector('[data-interval="walk"] [data-role="distance"]').textContent =
-    `Distance ${walkDist.toFixed(2)} km`;
+  // 1. Reusable interval stats function
+  function getIntervalMetrics(type) {
+    const interval = segmentCard.querySelector(`[data-interval="${type}"]`);
+    const distanceLabel = interval?.querySelector(`[data-role="distance"]`);
+    if (!interval || interval.classList.contains('hidden')) {
+      return { time: 0, dist: 0 };
+    }
+    const pace = Number(interval.querySelector('[data-control-type="pace"] input')?.value || 0);
+    const time = Number(interval.querySelector('[data-control-type="time"] input')?.value || 0);
+    const dist = distance(pace, time);
+    if (distanceLabel) {
+      distanceLabel.textContent = `Distance ${dist.toFixed(2)} km`;
+    }
+    return { time, dist };
+  }
+
+  // 2. Calculate for run and walk
+  const run = getIntervalMetrics('run');
+  const walk = getIntervalMetrics('walk');
+
   // 3. Segment Totals (with Repeats)
-  const repeats = Number(segmentCard.querySelector('[data-control-type="repeat"] input').value);
-  const repeatTimeSecs = runTime + walkTime;
+  const repeatsInput = segmentCard.querySelector('[data-control-type="repeat"] input');
+  const repeats = Number(repeatsInput?.value || 1);
+  const repeatTimeSecs = run.time + walk.time;
   const segmentTimeSecs = repeatTimeSecs * repeats;
-  const repeatDist = runDist + walkDist;
+  const repeatDist = run.dist + walk.dist;
   const segmentDist = repeatDist * repeats;
-  const segmentPaceSecs = pace(segmentDist, segmentTimeSecs);
+  const segmentPaceSecs = segmentDist > 0 ? pace(segmentDist, segmentTimeSecs) : 0;
+
   // 4. Update Repeat Label
   const repeatLabelEl = segmentCard.querySelector('.segment-card__repeat-summary');
   if (repeatLabelEl) {
     repeatLabelEl.textContent = `Repeats: ${formatTimes(repeatTimeSecs)} | ${formatTimes(segmentPaceSecs)} min/km | ${repeatDist.toFixed(2)} km`;
   }
+
   // 5. Update Header Summary Label
   const headerSummaryEl = segmentCard.querySelector('[data-role="header-summary"]');
   if (headerSummaryEl) {
     headerSummaryEl.textContent = `${formatTimes(segmentTimeSecs)} | ${formatTimes(segmentPaceSecs)} min/km | ${segmentDist.toFixed(2)} km`;
   }
+
   return { segmentTimeSecs, segmentDist };
 }
 
@@ -154,88 +220,74 @@ function updateSegmentCalculations(segmentCard) {
 function createSegmentCard(data = null) {
   if (!segmentTemplate) return;
   const clonedCard = segmentTemplate.content.cloneNode(true);
-  const cardElements = clonedCard.querySelector('[data-role="segment"]');
+  const cardElement = clonedCard.querySelector('[data-role="segment"]');
+
   if (data) {
-    cardElements.querySelector('[data-interval="run"] [data-control-type="time"] input').value =
+    const typeSelector = cardElement.querySelector('.segment-type-selector');
+    if (typeSelector) typeSelector.value = data.segmentType;
+
+    cardElement.querySelector('[data-interval="run"] [data-control-type="time"] input').value =
       data.runTime;
-    cardElements.querySelector('[data-interval="run"] [data-control-type="pace"] input').value =
+    cardElement.querySelector('[data-interval="run"] [data-control-type="pace"] input').value =
       data.runPace;
-    cardElements.querySelector('[data-interval="walk"] [data-control-type="time"] input').value =
+    cardElement.querySelector('[data-interval="walk"] [data-control-type="time"] input').value =
       data.walkTime;
-    cardElements.querySelector('[data-interval="walk"] [data-control-type="pace"] input').value =
+    cardElement.querySelector('[data-interval="walk"] [data-control-type="pace"] input').value =
       data.walkPace;
-    cardElements.querySelector('[data-control-type="repeat"] input').value = data.repeats;
+    cardElement.querySelector('[data-control-type="repeat"] input').value = data.repeats;
+
+    changeSegmentType(data.segmentType, cardElement);
   }
+
   segmentList.appendChild(clonedCard);
-  const sliders = segmentList.querySelectorAll('[data-role="slider"]');
+
+  const newCard = segmentList.lastElementChild;
+  const sliders = newCard.querySelectorAll('[data-role="slider"]');
   sliders.forEach((slider) => updateSliderLabel(slider));
+
   const currentSegments = getSegments();
   renumberSegments(currentSegments);
   updateGrandTotals(currentSegments);
 }
 
+function changeSegmentType(segmentType, segmentParent) {
+  const runInterval = segmentParent.querySelector('[data-interval="run"]');
+  const walkInterval = segmentParent.querySelector('[data-interval="walk"]');
+
+  if (!runInterval || !walkInterval) return;
+
+  runInterval.classList.toggle('hidden', segmentType === 'walk-only');
+  walkInterval.classList.toggle('hidden', segmentType === 'run-only');
+
+  const isSingleMode = segmentType !== 'run-walk';
+  updateTimeSliders(segmentParent, isSingleMode);
+}
+
 function setGoalDistance(input) {
   const outputValue = distanceGoalValues[input];
-  distanceSelection.value = outputValue;
+  if (distanceSelection) {
+    distanceSelection.value = outputValue;
+  }
 }
 
 // Update Total Card
 function updateGrandTotals(segments) {
   let totalTime = 0;
   let totalDist = 0;
+
   Array.from(segments).forEach((segment) => {
     const { segmentTimeSecs, segmentDist } = updateSegmentCalculations(segment);
     totalTime += segmentTimeSecs;
     totalDist += segmentDist;
   });
   const totalPace = formatTimes(pace(totalDist, totalTime));
+
   if (grandTotalDistLabel) grandTotalDistLabel.textContent = `Distance: ${totalDist.toFixed(2)} km`;
   if (grandTotalPaceLabel) grandTotalPaceLabel.textContent = `Pace: ${totalPace} min/km`;
   if (grandTotalTimeLabel) grandTotalTimeLabel.textContent = `Time: ${formatTimes(totalTime)}`;
 
-  const targetDist = parseFloat(distanceSelection.value) || 0;
-
-  if (targetDist > 0) {
-    const targetPercent = (totalDist / targetDist) * 100;
-    const clampedPercent = Math.min(100, targetPercent);
-    // Progress Colours
-    let hue = 0;
-    if (targetPercent <= 25) {
-      // 0% -> 25%: Red (0) to Orange (30)
-      const t = targetPercent / 25;
-      hue = 0 + t * (30 - 0);
-    } else if (targetPercent <= 75) {
-      // 25% -> 75%: Orange (30) to Yellow (60)
-      const t = (targetPercent - 25) / 50;
-      hue = 30 + t * (60 - 30);
-    } else if (targetPercent <= 100) {
-      // 75% -> 100%: Yellow (60) to Green (120)
-      const t = (targetPercent - 75) / 25;
-      hue = 60 + t * (120 - 60);
-    } else if (targetPercent <= 125) {
-      // 100% -> 125%: Green (120) back down to Red (0)
-      const t = (targetPercent - 100) / 25;
-      hue = 120 - t * (120 - 0);
-    } else {
-      // 125%+: Hold at Solid Red
-      hue = 0;
-    }
-    if (distanceProgressFill) {
-      distanceProgressFill.style.width = `${clampedPercent}%`;
-      distanceProgressFill.style.backgroundColor = `hsl(${hue}, 80%, 50%)`;
-    }
-    if (distanceProgressLabel) {
-      if (targetPercent > 100) {
-        const extraKm = (totalDist - targetDist).toFixed(2);
-        distanceProgressLabel.textContent = `${targetPercent.toFixed(1)}% (+${extraKm} km over target!)`;
-      } else {
-        distanceProgressLabel.textContent = `${targetPercent.toFixed(1)}% of ${targetDist} km`;
-      }
-    }
-  } else {
-    if (distanceProgressFill) distanceProgressFill.style.width = '0%';
-    if (distanceProgressLabel) distanceProgressLabel.textContent = 'Set a goal distance';
-  }
+  const targetDist = parseFloat(distanceSelection?.value) || 0;
+  updateProgressBar(totalDist, targetDist);
 }
 
 function renumberSegments(segments) {
@@ -259,7 +311,7 @@ function removeSegment(segment) {
 
 function toggleCardVisibility(closeBtn) {
   const card = closeBtn.closest('[data-role="segment"]');
-  card.classList.toggle('segment-card--collapsed');
+  if (card) card.classList.toggle('segment-card--collapsed');
 }
 
 function resetPlan() {
@@ -268,19 +320,23 @@ function resetPlan() {
   currentSegments.forEach((segment, index) => {
     if (index > 0) segment.remove();
   });
+
   const firstSegment = document.querySelector('[data-role="segment"]');
-  const sliders = firstSegment.querySelectorAll('[data-role="slider"]');
-  sliders.forEach((slider) => {
-    const controlType = slider.closest('.control-group').dataset.controlType;
-    if (controlType === 'repeat') slider.value = 5;
-    if (controlType === 'time') slider.value = 150;
-    if (controlType === 'pace') {
-      const isWalk = slider.closest('[data-interval="walk"]');
-      slider.value = isWalk ? 750 : 450;
-    }
-    updateSliderLabel(slider);
-  });
-  firstSegment.classList.remove('segment-card--collapsed');
+  if (firstSegment) {
+    const sliders = firstSegment.querySelectorAll('[data-role="slider"]');
+    sliders.forEach((slider) => {
+      const controlType = slider.closest('.control-group').dataset.controlType;
+      if (controlType === 'repeat') slider.value = 5;
+      if (controlType === 'time') slider.value = 150;
+      if (controlType === 'pace') {
+        const isWalk = slider.closest('[data-interval="walk"]');
+        slider.value = isWalk ? 750 : 450;
+      }
+      updateSliderLabel(slider);
+    });
+    firstSegment.classList.remove('segment-card--collapsed');
+  }
+
   const remainingSegments = getSegments();
   updateGrandTotals(remainingSegments);
   renumberSegments(remainingSegments);
@@ -295,14 +351,29 @@ function init() {
 
 // EVENT LISTENERS
 
-distanceSelectionButtons.addEventListener('click', (e) => {
-  const target = e.target;
-  if (!e.target.matches('button')) {
-    return;
+if (distanceSelectionButtons) {
+  distanceSelectionButtons.addEventListener('click', (e) => {
+    if (!e.target.matches('button')) return;
+    setGoalDistance(e.target.id);
+    updateGrandTotals(getSegments());
+  });
+}
+
+if (distanceSelection) {
+  distanceSelection.addEventListener('input', () => {
+    updateGrandTotals(getSegments());
+  });
+}
+
+segmentList.addEventListener('change', (e) => {
+  if (!e.target.classList.contains('segment-type-selector')) return;
+  const segmentType = e.target.value;
+  const segmentParent = e.target.closest('[data-role="segment"]');
+  if (segmentParent) {
+    changeSegmentType(segmentType, segmentParent);
   }
-  const buttonID = target.id;
-  setGoalDistance(buttonID);
   updateGrandTotals(getSegments());
+  saveToStorage();
 });
 
 if (resetButton) {
@@ -330,22 +401,12 @@ segmentList.addEventListener('click', (e) => {
 });
 
 // Add New Segment
-addSegmentButton.addEventListener('click', () => {
-  createSegmentCard();
-  saveToStorage();
-});
-
-// INITIALIZATION
-
-init();
-
-// DEBUG TOOLS
-
-const secondsInput = document.querySelector('[data-role="debug-input"]');
-const secondsOutput = document.querySelector('[data-role="debug-output"]');
-if (secondsInput && secondsOutput) {
-  secondsInput.addEventListener('input', () => {
-    let inputSeconds = secondsInput.value;
-    secondsOutput.textContent = formatTimes(inputSeconds);
+if (addSegmentButton) {
+  addSegmentButton.addEventListener('click', () => {
+    createSegmentCard();
+    saveToStorage();
   });
 }
+
+// INITIALIZATION
+init();
