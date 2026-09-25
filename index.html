@@ -90,7 +90,21 @@
         <div class="intervals">
           <!-- RUNNING INTERVAL BLOCK -->
           <section class="intervals__split intervals__split--run" data-interval="run">
-            <h4 class="intervals__title intervals__title--run">Running</h4>
+            <div class="intervals__header">
+              <h4 class="intervals__title intervals__title--run">Running</h4>
+              <div class="control">
+                <label class="toggle">
+                  <p class="control__label">Calculate:</p>
+                  <p class="toggle__time">Time</p>
+                  <input type="checkbox" checked />
+                  <span class="track track--run">
+                    <span class="thumb thumb--run"></span>
+                  </span>
+                  <p class="toggle__distance">Distance</p>
+                </label>
+              </div>
+            </div>
+
             <!-- TIME -->
             <div class="control" data-control-type="time">
               <label class="control__label">Time</label>
@@ -124,11 +138,11 @@
               <label class="control__label">Distance</label>
               <input
                 type="range"
-                min="450"
-                max="900"
-                step="15"
-                value="750"
-                class="control__input--slider control__input--run hidden"
+                min="0.10"
+                max="1"
+                step="0.05"
+                value="0.50"
+                class="control__input--slider control__input--run"
                 data-role="slider"
                 aria-label="Run Distance" />
               <span class="control__value" data-role="output">10.0 km</span>
@@ -136,7 +150,20 @@
           </section>
           <!-- WALKING INTERVAL BLOCK -->
           <section class="intervals__split intervals__split--walk" data-interval="walk">
-            <h4 class="intervals__title intervals__title--walk">Recovery</h4>
+            <div class="intervals__header">
+              <h4 class="intervals__title intervals__title--walk">Recovery</h4>
+              <div class="control">
+                <label class="toggle">
+                  <p class="control__label">Calculate:</p>
+                  <p class="toggle__time">Time</p>
+                  <input type="checkbox" checked />
+                  <span class="track track--walk">
+                    <span class="thumb thumb--walk"></span>
+                  </span>
+                  <p class="toggle__distance">Distance</p>
+                </label>
+              </div>
+            </div>
             <!-- TIME -->
             <div class="control" data-control-type="time">
               <label class="control__label">Time</label>
@@ -170,11 +197,11 @@
               <label class="control__label">Distance</label>
               <input
                 type="range"
-                min="450"
-                max="900"
-                step="15"
-                value="750"
-                class="control__input--slider control__input--walk hidden"
+                min="0.10"
+                max="1"
+                step="0.05"
+                value="0.50"
+                class="control__input--slider control__input--walk"
                 data-role="slider"
                 aria-label="Walk Distance" />
               <span class="control__value" data-role="output">Dummy</span>
