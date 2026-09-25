@@ -315,3 +315,123 @@ body {
   display: none;
 }
 
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+}
+.toggle input {
+  display: none;
+}
+
+.toggle .dependent {
+  font-weight: 600;
+}
+
+.toggle .dependent,
+.toggle .independent {
+  color: var(--colour-text-primary);
+}
+
+.track {
+  width: 40px;
+  height: 1.15rem;
+  background: #eee;
+  border: 1px solid;
+  border-radius: var(--radius);
+  position: relative;
+  transition: 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+.thumb {
+  position: relative;
+  width: 0.875rem;
+  height: 0.875rem;
+  border-radius: var(--radius);
+  top: calc(50% - 0.0625rem);
+  left: 2px;
+  transform: translateY(-50%);
+  transition: 0.3s ease;
+  margin: 0;
+  padding: 0;
+}
+
+.track--run {
+  border-color: var(--colour-running-primary);
+}
+.thumb--run {
+  background: var(--colour-running-primary);
+}
+
+.track--walk {
+  border-color: var(--colour-walking-primary);
+}
+.thumb--walk {
+  background: var(--colour-walking-primary);
+}
+
+input:checked + .track .thumb {
+  left: calc(100% - 0.875rem - 2px);
+}
+.toggle:has(input:checked) .toggle__distance {
+  font-weight: 600;
+}
+
+.toggle:has(input:not(:checked)) .toggle__time {
+  font-weight: 600;
+}
+
+.intervals__split:has(input[type='checkbox']:not(:checked))
+  [data-control-type='distance']
+  input[type='range'] {
+  display: block;
+  max-width: 100%;
+  transition:
+    max-width 0.5s ease,
+    display 0.5s allow-discrete;
+  @starting-style {
+    max-width: 0;
+  }
+}
+
+.intervals__split:has(input[type='checkbox']:checked)
+  [data-control-type='distance']
+  input[type='range'] {
+  max-width: 0;
+  display: none;
+  transition:
+    max-width 0.5s ease,
+    display 0.5s allow-discrete;
+}
+
+.intervals__split:has(input[type='checkbox']:checked)
+  [data-control-type='time']
+  input[type='range'] {
+  display: block;
+  max-width: 100%;
+  transition:
+    max-width 0.5s ease,
+    display 0.5s allow-discrete;
+  @starting-style {
+    max-width: 0;
+  }
+}
+.intervals__split:has(input[type='checkbox']:not(:checked))
+  [data-control-type='time']
+  input[type='range'] {
+  max-width: 0;
+  display: none;
+  transition:
+    max-width 0.5s ease,
+    display 0.5s allow-discrete;
+}
+
+.intervals__header {
+  display: flex;
+  justify-content: space-between;
+}
