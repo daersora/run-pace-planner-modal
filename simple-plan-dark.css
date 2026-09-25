@@ -1,0 +1,325 @@
+/* ==========================================================================
+   1. GLOBAL VARIABLES
+   ========================================================================== */
+:root {
+  /* Dark Mode Palette */
+
+  /* Running Colours */
+  --colour-running-primary: #f08c5d;
+  --colour-running-bg: #2b1d16;
+
+  /* Walking Colours */
+  --colour-walking-primary: #4ec298;
+  --colour-walking-bg: #132720;
+
+  /* Utility Colours - Dark Mode UI Surfaces */
+  --colour-page-bg: #12161f;
+  --colour-card-bg: #1a202c;
+
+  /* Text & Titles */
+  --colour-text-primary: #e2e8f0;
+  --colour-text-title: #7dd3fc;
+  --colour-text-muted: #94a3b8;
+
+  /* Borders & Structure */
+  --colour-neutral-border: #2d3748;
+  --colour-neutral-border-dark: #475569;
+  --colour-neutral-border-light: #1e293b;
+
+  /* Buttons - Soft & Integrated */
+  --colour-btn-bg: #242c3d;
+  --colour-btn-hover: #323e54;
+  --colour-btn-text: #7dd3fc;
+
+  /* Caution */
+  --colour-danger: #f87171; /* Softened pastel red for dark theme safety */
+
+  /* Sizes */
+  --radius: 6px;
+}
+
+* {
+  margin: 4px;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family:
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    Oxygen,
+    Ubuntu,
+    Cantarell,
+    'Open Sans',
+    'Helvetica Neue',
+    sans-serif;
+  background-color: var(--colour-page-bg);
+  color: var(--colour-text-primary);
+  padding: 12px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+}
+/* Buttons */
+.btn {
+  font-weight: 600;
+  border-radius: var(--radius);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease-in-out,
+    border-color 0.15s ease-in-out;
+}
+
+.btn--primary {
+  background-color: var(--colour-btn-bg);
+  border-color: var(--colour-neutral-border-dark);
+  color: var(--colour-btn-text);
+}
+.btn--primary:hover {
+  background-color: var(--colour-btn-hover);
+}
+
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  border-color: var(--colour-neutral-border);
+  color: var(--colour-text-primary);
+}
+
+/* Remove Button */
+.segment-card__remove-btn:not(:disabled) {
+  background-color: transparent;
+  color: var(--colour-danger);
+  border: 1px solid var(--colour-danger);
+}
+.segment-card__remove-btn:hover:not(:disabled) {
+  background-color: var(--colour-danger);
+  color: #ffffff;
+}
+
+/* Text Buttons */
+.btn--text {
+  padding: 6px 12px;
+  font-size: 0.875rem;
+}
+
+/* Utility Buttons */
+.btn--icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  line-height: normal;
+  width: 32px;
+  height: 32px;
+  font-size: 1.2rem;
+}
+
+/* Special Button Features */
+.icon-caret {
+  transition: transform 0.25s ease-in-out;
+  transform: rotate(180deg); /* Points UP when open */
+}
+.segment-card--collapsed .icon-caret {
+  transform: rotate(0deg); /* Rotates DOWN when collapsed */
+}
+
+/* Body of Tool */
+.tool {
+  width: 100%;
+  max-width: 800px;
+  background-color: var(--colour-card-bg);
+  border: 1px solid var(--colour-neutral-border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.tool__title {
+  color: var(--colour-text-title);
+  font-size: 1.3rem;
+  padding: 12px;
+}
+/* Overview 'card' */
+.overview {
+  max-width: 100%;
+  padding-bottom: 1rem;
+}
+
+/* Headers */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 0;
+  border-top: 1px solid var(--colour-neutral-border);
+}
+.header__title {
+  color: var(--colour-text-title);
+  font-size: 1.15rem;
+}
+.header__summary {
+  display: flex;
+  align-items: center;
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--colour-text-muted);
+  gap: 8px;
+}
+
+/* Target inputs*/
+.target {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+/* Controls, e.g. slider select */
+.control {
+  display: flex;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: pan-y;
+  flex-wrap: wrap;
+}
+.control__label {
+  min-width: 15%;
+  color: var(--colour-text-primary);
+}
+.control__input--slider {
+  max-width: 100%;
+  flex-grow: 1;
+  accent-color: var(--colour-text-title);
+  cursor: pointer;
+}
+.control__value {
+  width: 25%;
+  font-weight: 500;
+  color: var(--colour-text-muted);
+}
+
+/* Preset buttons */
+.presets {
+  margin-left: auto;
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+/* Progress Bar */
+.progress-bar {
+  width: 100%;
+  height: 12px;
+  background-color: var(--colour-neutral-border-light);
+  border-radius: 6px;
+  overflow: hidden;
+  border: var(--colour-neutral-border) 1px solid;
+}
+
+.progress-bar__fill {
+  height: 100%;
+  width: 0%;
+  background-color: var(--colour-neutral-border);
+  transition: width 0.3s ease;
+  margin: 0;
+}
+
+.progress-bar__label {
+  font-style: italic;
+  padding: 0.5rem;
+}
+
+/* Intervals Block */
+.intervals {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--colour-neutral-border);
+  flex-wrap: wrap;
+}
+
+/* Title for Intervals */
+
+.intervals__title {
+  display: flex;
+  font-size: 1rem;
+  padding: 6px 12px;
+}
+
+.intervals__title--run {
+  color: var(--colour-running-primary);
+}
+
+.intervals__title--walk {
+  color: var(--colour-walking-primary);
+}
+
+/* Splits for Intervals */
+.intervals__split {
+  font-size: 0.875rem;
+  min-width: 200px;
+  flex: 1;
+  border: 1px solid var(--colour-neutral-border);
+  border-radius: var(--radius);
+}
+
+input,
+select {
+  background-color: var(--colour-btn-hover);
+  color: var(--colour-btn-text);
+}
+
+/* Run Splits */
+.intervals__split--run {
+  background-color: var(--colour-running-bg);
+  border-left: 4px solid var(--colour-running-primary);
+}
+.control__input--run {
+  accent-color: var(--colour-running-primary);
+}
+
+/* Walk Splits */
+.intervals__split--walk {
+  background-color: var(--colour-walking-bg);
+  border-left: 4px solid var(--colour-walking-primary);
+}
+.control__input--walk {
+  accent-color: var(--colour-walking-primary);
+}
+
+/* Repeats */
+.repeats {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 0;
+  font-size: 0.875rem;
+}
+
+.repeats__summary {
+  display: flex;
+  align-items: center;
+  font-weight: 500;
+  color: var(--colour-text-primary);
+  gap: 8px;
+}
+.control--repeats {
+  display: flex;
+  flex-grow: 1;
+}
+.--collapsed .intervals,
+.--collapsed .repeats,
+.hidden {
+  display: none;
+}

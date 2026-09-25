@@ -7,10 +7,9 @@ const distanceSelection = document.getElementById('distance-goal-input');
 const distanceSelectionButtons = document.getElementById('distance-presets');
 const segmentTemplate = document.getElementById('tpl-segment-card');
 
-// Grand Totals Labels
-const grandTotalTimeLabel = document.querySelector('[data-role="total-time"]');
-const grandTotalPaceLabel = document.querySelector('[data-role="total-pace"]');
-const grandTotalDistLabel = document.querySelector('[data-role="total-distance"]');
+// Grand Totals Summary Container
+const totalsSummary = document.getElementById('totals-summary');
+
 // Progress Elements
 const distanceProgressFill = document.getElementById('distance-progress-fill');
 const distanceProgressLabel = document.getElementById('distance-progress-label');
@@ -62,10 +61,10 @@ function getSegments() {
 
 // DATA STORAGE AND STATE MANAGEMENT
 
-// When any other function needs to get out the data from a segment
 function getSegmentData() {
   return Array.from(getSegments()).map((card) => {
-    const selector = card.querySelector('.segment-type-selector');
+    const selector =
+      card.querySelector('.control__input#segment-type-selector') || card.querySelector('select');
     return {
       segmentType: selector ? selector.value : 'run-walk',
       runTime: Number(
@@ -137,7 +136,7 @@ function updateProgressBar(totalDist, targetDist) {
 
 // Update the labels for sliders, including formatting
 function updateSliderLabel(slider) {
-  const controlBox = slider.closest('.control-group');
+  const controlBox = slider.closest('.control');
   if (!controlBox) return;
   const outputLabel = controlBox.querySelector('[data-role="output"]');
   if (!outputLabel) return;
@@ -172,20 +171,22 @@ function updateTimeSliders(segmentParent, isSingleMode) {
 
 // Update Segment Numbers
 function updateSegmentCalculations(segmentCard) {
-  // 1. Reusable interval stats function
   function getIntervalMetrics(type) {
     const interval = segmentCard.querySelector(`[data-interval="${type}"]`);
-    const distanceLabel = interval?.querySelector(`[data-role="distance"]`);
+    const distanceControl = interval?.querySelector('[data-control-type="distance"]');
+    const distanceLabel = distanceControl?.querySelector('[data-role="output"]');
+
     if (!interval || interval.classList.contains('hidden')) {
       return { time: 0, dist: 0 };
     }
-    const pace = Number(interval.querySelector('[data-control-type="pace"] input')?.value || 0);
-    const time = Number(interval.querySelector('[data-control-type="time"] input')?.value || 0);
-    const dist = distance(pace, time);
+    const paceVal = Number(interval.querySelector('[data-control-type="pace"] input')?.value || 0);
+    const timeVal = Number(interval.querySelector('[data-control-type="time"] input')?.value || 0);
+    const dist = distance(paceVal, timeVal);
+
     if (distanceLabel) {
-      distanceLabel.textContent = `Distance ${dist.toFixed(2)} km`;
+      distanceLabel.textContent = `${dist.toFixed(2)} km`;
     }
-    return { time, dist };
+    return { time: timeVal, dist };
   }
 
   // 2. Calculate for run and walk
@@ -202,9 +203,9 @@ function updateSegmentCalculations(segmentCard) {
   const segmentPaceSecs = segmentDist > 0 ? pace(segmentDist, segmentTimeSecs) : 0;
 
   // 4. Update Repeat Label
-  const repeatLabelEl = segmentCard.querySelector('.segment-card__repeat-summary');
+  const repeatLabelEl = segmentCard.querySelector('.repeats__summary');
   if (repeatLabelEl) {
-    repeatLabelEl.textContent = `Repeats: ${formatTimes(repeatTimeSecs)} | ${formatTimes(segmentPaceSecs)} min/km | ${repeatDist.toFixed(2)} km`;
+    repeatLabelEl.textContent = `Repeats : ${formatTimes(repeatTimeSecs)} | ${formatTimes(segmentPaceSecs)} min/km | ${repeatDist.toFixed(2)} km`;
   }
 
   // 5. Update Header Summary Label
@@ -223,7 +224,7 @@ function createSegmentCard(data = null) {
   const cardElement = clonedCard.querySelector('[data-role="segment"]');
 
   if (data) {
-    const typeSelector = cardElement.querySelector('.segment-type-selector');
+    const typeSelector = cardElement.querySelector('#segment-type-selector');
     if (typeSelector) typeSelector.value = data.segmentType;
 
     cardElement.querySelector('[data-interval="run"] [data-control-type="time"] input').value =
@@ -235,13 +236,16 @@ function createSegmentCard(data = null) {
     cardElement.querySelector('[data-interval="walk"] [data-control-type="pace"] input').value =
       data.walkPace;
     cardElement.querySelector('[data-control-type="repeat"] input').value = data.repeats;
-
-    changeSegmentType(data.segmentType, cardElement);
   }
 
   segmentList.appendChild(clonedCard);
 
   const newCard = segmentList.lastElementChild;
+
+  // Apply visibility changes AFTER inserting into DOM
+  const selectedType = data ? data.segmentType : 'run-walk';
+  changeSegmentType(selectedType, newCard);
+
   const sliders = newCard.querySelectorAll('[data-role="slider"]');
   sliders.forEach((slider) => updateSliderLabel(slider));
 
@@ -282,9 +286,9 @@ function updateGrandTotals(segments) {
   });
   const totalPace = formatTimes(pace(totalDist, totalTime));
 
-  if (grandTotalDistLabel) grandTotalDistLabel.textContent = `Distance: ${totalDist.toFixed(2)} km`;
-  if (grandTotalPaceLabel) grandTotalPaceLabel.textContent = `Pace: ${totalPace} min/km`;
-  if (grandTotalTimeLabel) grandTotalTimeLabel.textContent = `Time: ${formatTimes(totalTime)}`;
+  if (totalsSummary) {
+    totalsSummary.textContent = `${formatTimes(totalTime)} | ${totalPace} min/km | ${totalDist.toFixed(2)} km`;
+  }
 
   const targetDist = parseFloat(distanceSelection?.value) || 0;
   updateProgressBar(totalDist, targetDist);
@@ -311,7 +315,7 @@ function removeSegment(segment) {
 
 function toggleCardVisibility(closeBtn) {
   const card = closeBtn.closest('[data-role="segment"]');
-  if (card) card.classList.toggle('segment-card--collapsed');
+  if (card) card.classList.toggle('--collapsed');
 }
 
 function resetPlan() {
@@ -323,9 +327,14 @@ function resetPlan() {
 
   const firstSegment = document.querySelector('[data-role="segment"]');
   if (firstSegment) {
+    const typeSelector = firstSegment.querySelector('#segment-type-selector');
+    if (typeSelector) {
+      typeSelector.value = 'run-walk';
+    }
+    changeSegmentType('run-walk', firstSegment);
     const sliders = firstSegment.querySelectorAll('[data-role="slider"]');
     sliders.forEach((slider) => {
-      const controlType = slider.closest('.control-group').dataset.controlType;
+      const controlType = slider.closest('.control').dataset.controlType;
       if (controlType === 'repeat') slider.value = 5;
       if (controlType === 'time') slider.value = 150;
       if (controlType === 'pace') {
@@ -334,7 +343,7 @@ function resetPlan() {
       }
       updateSliderLabel(slider);
     });
-    firstSegment.classList.remove('segment-card--collapsed');
+    firstSegment.classList.remove('--collapsed');
   }
 
   const remainingSegments = getSegments();
@@ -366,12 +375,16 @@ if (distanceSelection) {
 }
 
 segmentList.addEventListener('change', (e) => {
-  if (!e.target.classList.contains('segment-type-selector')) return;
-  const segmentType = e.target.value;
-  const segmentParent = e.target.closest('[data-role="segment"]');
+  const typeSelect = e.target.closest('#segment-type-selector');
+  if (!typeSelect) return;
+
+  const segmentType = typeSelect.value;
+  const segmentParent = typeSelect.closest('[data-role="segment"]');
+
   if (segmentParent) {
     changeSegmentType(segmentType, segmentParent);
   }
+
   updateGrandTotals(getSegments());
   saveToStorage();
 });
