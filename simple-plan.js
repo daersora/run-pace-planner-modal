@@ -258,16 +258,14 @@ function createSegmentCard(data = null) {
   const clonedCard = segmentTemplate.content.cloneNode(true);
   const cardElement = clonedCard.querySelector('[data-role="segment"]');
 
-  // 1. Set segment type FIRST so slider min/max boundaries are updated first
   const selectedType = data ? data.segmentType : 'run-walk';
   const typeSelector = cardElement.querySelector('#segment-type-selector');
   if (typeSelector) typeSelector.value = selectedType;
 
   changeSegmentType(selectedType, cardElement);
 
-  // 2. Now populate inputs (slider value won't clamp because max is already 600 if single mode)
   if (data) {
-    // Run parameters
+    // Run
     const runTimeInput = cardElement.querySelector(
       '[data-interval="run"] [data-control-type="time"] input',
     );
@@ -288,7 +286,7 @@ function createSegmentCard(data = null) {
     );
     if (runToggle && data.runCalcDist !== undefined) runToggle.checked = data.runCalcDist;
 
-    // Walk parameters
+    // Walk
     const walkTimeInput = cardElement.querySelector(
       '[data-interval="walk"] [data-control-type="time"] input',
     );
@@ -315,9 +313,7 @@ function createSegmentCard(data = null) {
   }
 
   segmentList.appendChild(clonedCard);
-
   const newCard = segmentList.lastElementChild;
-
   const sliders = newCard.querySelectorAll('[data-role="slider"]');
   sliders.forEach((slider) => updateSliderLabel(slider));
 
@@ -334,7 +330,6 @@ function changeSegmentType(segmentType, segmentParent) {
 
   runInterval.classList.toggle('hidden', segmentType === 'walk-only');
   walkInterval.classList.toggle('hidden', segmentType === 'run-only');
-
   const isSingleMode = segmentType !== 'run-walk';
   updateTimeSliders(segmentParent, isSingleMode);
 }
@@ -360,7 +355,6 @@ function updateGrandTotals(segments) {
   if (totalsSummary) {
     totalsSummary.textContent = `${formatTimes(totalTime)} | ${totalPace} min/km | ${totalDist.toFixed(2)} km`;
   }
-
   const targetDist = parseFloat(distanceSelection?.value) || 0;
   updateProgressBar(totalDist, targetDist);
 }
@@ -404,7 +398,6 @@ function resetPlan() {
     }
     changeSegmentType('run-walk', firstSegment);
 
-    // Reset toggle checkboxes to default (checked = Calculate Distance)
     const checkboxes = firstSegment.querySelectorAll('.toggle input[type="checkbox"]');
     checkboxes.forEach((cb) => {
       cb.checked = true;
