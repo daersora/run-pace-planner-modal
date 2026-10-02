@@ -35,6 +35,41 @@
   --radius: 6px;
 }
 
+[data-theme='dark'] {
+  /* Running Colours */
+  --colour-running-primary: #f08c5d;
+  --colour-running-bg: #2b1d16;
+
+  /* Walking Colours */
+  --colour-walking-primary: #4ec298;
+  --colour-walking-bg: #132720;
+
+  /* Utility Colours - Dark Mode UI Surfaces */
+  --colour-page-bg: #12161f;
+  --colour-card-bg: #1a202c;
+
+  /* Text & Titles */
+  --colour-text-primary: #e2e8f0;
+  --colour-text-title: #7dd3fc;
+  --colour-text-muted: #94a3b8;
+
+  /* Borders & Structure */
+  --colour-neutral-border: #2d3748;
+  --colour-neutral-border-dark: #475569;
+  --colour-neutral-border-light: #1e293b;
+
+  /* Buttons - Soft & Integrated */
+  --colour-btn-bg: #242c3d;
+  --colour-btn-hover: #323e54;
+  --colour-btn-text: #7dd3fc;
+
+  /* Caution */
+  --colour-danger: #f87171; /* Softened pastel red for dark theme safety */
+
+  /* Sizes */
+  --radius: 6px;
+}
+
 * {
   margin: 4px;
   padding: 0;
@@ -336,7 +371,7 @@ body {
 .track {
   width: 40px;
   height: 1.15rem;
-  background: #eee;
+  background: var(--colour-neutral-border);
   border: 1px solid;
   border-radius: var(--radius);
   position: relative;
@@ -398,7 +433,6 @@ input:checked + .track .thumb {
     max-width: 0;
   }
 }
-
 .intervals__split:has(input[type='checkbox']:checked)
   [data-control-type='distance']
   input[type='range'] {
@@ -434,4 +468,10 @@ input:checked + .track .thumb {
 .intervals__header {
   display: flex;
   justify-content: space-between;
+}
+
+.title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
