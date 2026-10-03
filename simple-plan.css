@@ -1,12 +1,12 @@
 /* ==========================================================================
-   1. GLOBAL VARIABLES
+   1. GLOBAL VARIABLES & THEMING
    ========================================================================== */
 :root {
   /* Running Colours */
   --colour-running-primary: #ce6636;
   --colour-running-bg: #fdf4ea;
 
-  /* TWalking Colours */
+  /* Walking Colours */
   --colour-walking-primary: #2d8c69;
   --colour-walking-bg: #eaf5f0;
 
@@ -18,6 +18,7 @@
   --colour-text-primary: #323d52;
   --colour-text-title: #1e5471;
   --colour-text-muted: #505c74;
+
   /* Borders & Structure */
   --colour-neutral-border: #e2e8f0;
   --colour-neutral-border-dark: #cbd5e1;
@@ -64,14 +65,17 @@
   --colour-btn-text: #7dd3fc;
 
   /* Caution */
-  --colour-danger: #f87171; /* Softened pastel red for dark theme safety */
+  --colour-danger: #f87171;
 
   /* Sizes */
   --radius: 6px;
 }
 
+/* ==========================================================================
+   2. BASE & RESET STYLES
+   ========================================================================== */
 * {
-  margin: 4px;
+  margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
@@ -91,14 +95,17 @@ body {
     sans-serif;
   background-color: var(--colour-page-bg);
   color: var(--colour-text-primary);
-  padding: 12px;
+  padding: 1rem;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
 }
-/* Buttons */
+
+/* ==========================================================================
+   3. BUTTONS
+   ========================================================================== */
 .btn {
   font-weight: 600;
   border-radius: var(--radius);
@@ -114,6 +121,7 @@ body {
   border-color: var(--colour-btn-text);
   color: var(--colour-btn-text);
 }
+
 .btn--primary:hover {
   background-color: var(--colour-btn-hover);
 }
@@ -131,6 +139,7 @@ body {
   color: var(--colour-danger);
   border: 1px solid var(--colour-danger);
 }
+
 .segment-card__remove-btn:hover:not(:disabled) {
   background-color: var(--colour-danger);
   color: #ffffff;
@@ -152,98 +161,170 @@ body {
   width: 32px;
   height: 32px;
   font-size: 1.2rem;
+  flex-shrink: 0;
 }
 
 /* Special Button Features */
 .icon-caret {
   transition: transform 0.25s ease-in-out;
-  transform: rotate(180deg); /* Points UP when open */
-}
-.segment-card--collapsed .icon-caret {
-  transform: rotate(0deg); /* Rotates DOWN when collapsed */
+  transform: rotate(180deg);
 }
 
-/* Body of Tool */
+.segment-card--collapsed .icon-caret {
+  transform: rotate(0deg);
+}
+
+/* ==========================================================================
+   4. LAYOUT & CONTAINERS
+   ========================================================================== */
 .tool {
   width: 100%;
   max-width: 800px;
+  padding: 1rem;
   background-color: var(--colour-card-bg);
   border: 1px solid var(--colour-neutral-border);
   border-radius: var(--radius);
-  overflow: hidden;
+  overflow: visible;
 }
+
 .tool__title {
   color: var(--colour-text-title);
   font-size: 1.3rem;
-  padding: 12px;
+  padding: 0.5rem 0;
 }
-/* Overview 'card' */
+
+.title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
 .overview {
   max-width: 100%;
   padding-bottom: 1rem;
 }
 
-/* Headers */
+/* ==========================================================================
+   5. HEADERS & SEGMENT CARDS (RESPONSIVE GRID)
+   ========================================================================== */
 .header {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  padding: 12px 0;
+  gap: 0.75rem;
+  padding: 0.75rem 0;
   border-top: 1px solid var(--colour-neutral-border);
 }
+
 .header__title {
   color: var(--colour-text-title);
   font-size: 1.15rem;
 }
+
 .header__summary {
   display: flex;
   align-items: center;
-  font-size: 1rem;
+  font-size: 0.925rem;
   font-weight: 500;
   color: var(--colour-text-muted);
   gap: 8px;
 }
 
-/* Target inputs*/
-.target {
-  display: flex;
+.segment-card .header {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
   align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.75rem 0;
+  width: 100%;
 }
 
-/* Controls, e.g. slider select */
+.segment-card .header__title {
+  font-size: 1rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.segment-card .header__summary {
+  font-size: 0.85rem;
+  color: var(--colour-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.segment-card .header .control[data-role='segment-type-select'] {
+  width: auto;
+  display: flex;
+  align-items: center;
+}
+
+.segment-card .header [data-role='close-card'] {
+  justify-self: end;
+}
+
+/* Target Inputs */
+.target {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+/* ==========================================================================
+   6. CONTROLS & PRESETS
+   ========================================================================== */
 .control {
   display: flex;
-  user-select: none;
-  -webkit-user-select: none;
-  touch-action: pan-y;
-  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  overflow: visible;
 }
+
 .control__label {
-  min-width: 15%;
+  min-width: fit-content;
   color: var(--colour-text-primary);
 }
+
+.control__input {
+  padding: 4px 8px;
+  border-radius: var(--radius);
+  border: 1px solid var(--colour-neutral-border-dark);
+  background-color: var(--colour-card-bg);
+  color: var(--colour-text-primary);
+}
+
 .control__input--slider {
   max-width: 100%;
   flex-grow: 1;
   accent-color: var(--colour-text-title);
   cursor: pointer;
 }
+
 .control__value {
-  width: 25%;
+  width: auto;
+  text-align: right;
+  white-space: nowrap;
   font-weight: 500;
   color: var(--colour-text-muted);
 }
 
-/* Preset buttons */
+/* Preset Buttons */
 .presets {
-  margin-left: auto;
   display: flex;
   gap: 0.5rem;
   flex-wrap: wrap;
-  align-items: center;
+  width: 100%;
+}
+
+.presets .btn {
+  flex: 1 1 calc(50% - 0.5rem);
+  text-align: center;
+  white-space: nowrap;
 }
 
 /* Progress Bar */
@@ -265,22 +346,23 @@ body {
 }
 
 .progress-bar__label {
+  display: block;
   font-style: italic;
-  padding: 0.5rem;
+  padding: 0.5rem 0;
+  font-size: 0.85rem;
 }
 
-/* Intervals Block */
+/* ==========================================================================
+   7. INTERVALS & SPLITS
+   ========================================================================== */
 .intervals {
   display: flex;
-  justify-content: space-between;
-  gap: 12px;
+  flex-direction: column;
+  gap: 1rem;
   margin-bottom: 12px;
   padding-top: 12px;
   border-top: 1px solid var(--colour-neutral-border);
-  flex-wrap: wrap;
 }
-
-/* Title for Intervals */
 
 .intervals__title {
   display: flex;
@@ -296,40 +378,64 @@ body {
   color: var(--colour-walking-primary);
 }
 
-/* Splits for Intervals */
 .intervals__split {
   font-size: 0.875rem;
-  min-width: 200px;
-  flex: 1;
+  width: 100%;
+  padding: 0.75rem;
   border: 1px solid var(--colour-neutral-border);
   border-radius: var(--radius);
 }
 
-/* Run Splits */
+.intervals__split .control {
+  display: grid;
+  grid-template-columns: 70px 1fr auto;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
 .intervals__split--run {
   background-color: var(--colour-running-bg);
   border-left: 4px solid var(--colour-running-primary);
 }
+
 .control__input--run {
   accent-color: var(--colour-running-primary);
 }
 
-/* Walk Splits */
 .intervals__split--walk {
   background-color: var(--colour-walking-bg);
   border-left: 4px solid var(--colour-walking-primary);
 }
+
 .control__input--walk {
   accent-color: var(--colour-walking-primary);
+}
+
+.intervals__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.intervals__header .control {
+  width: auto;
+  margin-left: auto;
+  overflow: visible;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
 }
 
 /* Repeats */
 .repeats {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 12px 0;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.75rem;
+  padding: 0.75rem 0;
   font-size: 0.875rem;
 }
 
@@ -340,27 +446,35 @@ body {
   color: var(--colour-text-primary);
   gap: 8px;
 }
+
 .control--repeats {
   display: flex;
+  align-items: center;
+  gap: 0.5rem;
   flex-grow: 1;
 }
+
 .--collapsed .intervals,
 .--collapsed .repeats,
 .hidden {
   display: none;
 }
 
+/* ==========================================================================
+   8. TOGGLE SWITCH & RANGE INPUTS
+   ========================================================================== */
 .toggle {
   display: inline-flex;
   align-items: center;
+  justify-content: flex-end;
   cursor: pointer;
-}
-.toggle input {
-  display: none;
+  gap: 0.35rem;
+  user-select: none;
+  white-space: nowrap;
 }
 
-.toggle .dependent {
-  font-weight: 600;
+.toggle input {
+  display: none;
 }
 
 .toggle .dependent,
@@ -369,29 +483,30 @@ body {
 }
 
 .track {
-  width: 40px;
-  height: 1.15rem;
+  width: 2rem;
+  height: 1rem;
   background: var(--colour-neutral-border);
   border: 1px solid;
-  border-radius: var(--radius);
+  border-radius: 12px;
   position: relative;
-  transition: 0.3s ease;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  transition:
+    background-color 0.25s ease,
+    border-color 0.25s ease;
+  display: inline-block;
   box-sizing: border-box;
-  margin: 0;
+  margin: 0 4px;
   padding: 0;
+  flex-shrink: 0;
 }
+
 .thumb {
-  position: relative;
-  width: 0.875rem;
-  height: 0.875rem;
-  border-radius: var(--radius);
-  top: calc(50% - 0.0625rem);
+  position: absolute;
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 50%;
+  top: 1px;
   left: 2px;
-  transform: translateY(-50%);
-  transition: 0.3s ease;
+  transition: left 0.25s ease-in-out;
   margin: 0;
   padding: 0;
 }
@@ -399,6 +514,7 @@ body {
 .track--run {
   border-color: var(--colour-running-primary);
 }
+
 .thumb--run {
   background: var(--colour-running-primary);
 }
@@ -406,13 +522,15 @@ body {
 .track--walk {
   border-color: var(--colour-walking-primary);
 }
+
 .thumb--walk {
   background: var(--colour-walking-primary);
 }
 
 input:checked + .track .thumb {
-  left: calc(100% - 0.875rem - 2px);
+  left: calc(100% - 0.75rem - 2px);
 }
+
 .toggle:has(input:checked) .toggle__distance {
   font-weight: 600;
 }
@@ -421,26 +539,20 @@ input:checked + .track .thumb {
   font-weight: 600;
 }
 
+/* Dynamic Range Input Toggles */
 .intervals__split:has(input[type='checkbox']:not(:checked))
   [data-control-type='distance']
   input[type='range'] {
   display: block;
   max-width: 100%;
-  transition:
-    max-width 0.5s ease,
-    display 0.5s allow-discrete;
-  @starting-style {
-    max-width: 0;
-  }
+  transition: max-width 0.3s ease;
 }
+
 .intervals__split:has(input[type='checkbox']:checked)
   [data-control-type='distance']
   input[type='range'] {
   max-width: 0;
   display: none;
-  transition:
-    max-width 0.5s ease,
-    display 0.5s allow-discrete;
 }
 
 .intervals__split:has(input[type='checkbox']:checked)
@@ -448,30 +560,96 @@ input:checked + .track .thumb {
   input[type='range'] {
   display: block;
   max-width: 100%;
-  transition:
-    max-width 0.5s ease,
-    display 0.5s allow-discrete;
-  @starting-style {
-    max-width: 0;
-  }
+  transition: max-width 0.3s ease;
 }
+
 .intervals__split:has(input[type='checkbox']:not(:checked))
   [data-control-type='time']
   input[type='range'] {
   max-width: 0;
   display: none;
-  transition:
-    max-width 0.5s ease,
-    display 0.5s allow-discrete;
 }
 
-.intervals__header {
-  display: flex;
-  justify-content: space-between;
+#add-segment-button {
+  margin-top: 1rem;
+  width: 100%;
 }
 
-.title {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+/* ==========================================================================
+   9. MEDIA QUERIES & BREAKPOINTS
+   ========================================================================== */
+@media (max-width: 479px) {
+  .segment-card .header {
+    grid-template-columns: 1fr auto auto;
+    grid-template-rows: auto auto;
+    row-gap: 0.35rem;
+    column-gap: 0.5rem;
+  }
+
+  .segment-card .header__title {
+    grid-column: 1;
+    grid-row: 1;
+    align-self: center;
+  }
+
+  .segment-card .header .control[data-role='segment-type-select'] {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: end;
+    align-self: center;
+  }
+
+  .segment-card .header [data-role='close-card'] {
+    grid-column: 3;
+    grid-row: 1;
+    justify-self: end;
+    align-self: center;
+  }
+
+  .segment-card .header__summary {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    width: 100%;
+  }
+}
+
+@media (min-width: 640px) {
+  .target {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .presets {
+    width: auto;
+    flex-wrap: nowrap;
+    margin-left: auto;
+  }
+
+  .presets .btn {
+    flex: 0 0 auto;
+    padding: 6px 12px;
+  }
+
+  .intervals {
+    flex-direction: row;
+  }
+
+  .intervals__split {
+    flex: 1;
+  }
+
+  .repeats {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .repeats__summary {
+    text-align: left;
+    white-space: nowrap;
+  }
+
+  #add-segment-button {
+    width: auto;
+  }
 }
