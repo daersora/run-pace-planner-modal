@@ -17,8 +17,7 @@
         }
       })();
     </script>
-    <link rel="stylesheet" href="simple-plan.css" media="(prefers-color-scheme: light)" />
-    <link rel="stylesheet" href="simple-plan-dark.css" media="(prefers-color-scheme: dark)" />
+    <link rel="stylesheet" href="simple-plan.css" />
     <script src="simple-plan.js" defer></script>
     <script src="dark-mode.js" defer></script>
   </head>
@@ -75,6 +74,13 @@
       <main class="segment-list" id="segment-list">
         <!-- POPULATES ON PAGE LOAD -->
       </main>
+      <div class="chart-container">
+        <svg id="pace-chart" width="100%" height="300" viewBox="0 0 600 300">
+          <g id="grid-layer"></g>
+          <g id="x-axis-layer"></g>
+          <path id="step-line" fill="none" stroke="#2563eb" stroke-width="1" />
+        </svg>
+      </div>
     </div>
     <!-- ACTIONS -->
     <button id="add-segment-button" class="btn btn--primary btn--text" data-role="add-segment">

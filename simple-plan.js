@@ -122,7 +122,191 @@ function loadFromStorage() {
   }
 }
 
+function generateChartData() {
+  const plannerData = JSON.parse(localStorage.getItem('runPacePlannerData'));
+  if (!plannerData || !plannerData.segments) return null;
+
+  let cumDist = 0;
+  const blocks = [];
+
+  for (const segment of plannerData.segments) {
+    const runDist =
+      segment.segmentType === 'walk-only'
+        ? 0
+        : segment.runCalcDist
+          ? distance(segment.runPace, segment.runTime)
+          : Number(segment.runDistance || 0);
+    const walkDist =
+      segment.segmentType === 'run-only'
+        ? 0
+        : segment.walkCalcDist
+          ? distance(segment.walkPace, segment.walkTime)
+          : Number(segment.walkDistance || 0);
+
+    for (let i = 0; i < segment.repeats; i++) {
+      // 1. Process run block (if distance > 0)
+      if (runDist > 0) {
+        const nextDist = cumDist + runDist;
+        blocks.push({
+          startX: cumDist,
+          endX: nextDist,
+          pace: segment.runPace,
+          type: 'run',
+        });
+        cumDist = nextDist;
+      }
+      // 2. Process walk block (if distance > 0)
+      if (walkDist > 0) {
+        const nextDist = cumDist + walkDist;
+        blocks.push({
+          startX: cumDist,
+          endX: nextDist,
+          pace: segment.walkPace,
+          type: 'walk',
+        });
+        cumDist = nextDist;
+      }
+    }
+  }
+  const paces = blocks.map((b) => b.pace).filter((p) => p > 0);
+  const fastPace = paces.length ? Math.min(...paces) : 0;
+  const slowPace = paces.length ? Math.max(...paces) : 0;
+
+  const targetDist = Number(plannerData.targetDistance || 0);
+  const maxDist = Math.max(targetDist, cumDist);
+
+  return {
+    blocks,
+    targetDistance: targetDist,
+    totalDistance: cumDist,
+    maxDistance: maxDist,
+    fastPace,
+    slowPace,
+  };
+}
+
+function getXPixel(distance, maxDistance, drawableWidth, paddingLeft) {
+  if (maxDistance <= 0) return paddingLeft;
+  return paddingLeft + (distance / maxDistance) * drawableWidth;
+}
+
+function getYPixel(pace, minPaceBuffer, maxPaceBuffer, drawableHeight, paddingTop) {
+  const range = maxPaceBuffer - minPaceBuffer;
+  if (range === 0) return paddingTop + drawableHeight / 2;
+  return paddingTop + ((pace - minPaceBuffer) / range) * drawableHeight;
+}
+
+function generateStepPath(blocks, maxDistance, minPaceBuffer, maxPaceBuffer, config) {
+  if (!blocks || blocks.length === 0) return '';
+
+  const { width, height, paddingTop, paddingBottom, paddingLeft, paddingRight } = config;
+  const drawableWidth = width - paddingLeft - paddingRight;
+  const drawableHeight = height - paddingTop - paddingBottom;
+
+  let pathCommands = [];
+
+  blocks.forEach((block, index) => {
+    const x1 = getXPixel(block.startX, maxDistance, drawableWidth, paddingLeft);
+    const x2 = getXPixel(block.endX, maxDistance, drawableWidth, paddingLeft);
+    const y = getYPixel(block.pace, minPaceBuffer, maxPaceBuffer, drawableHeight, paddingTop);
+    if (index === 0) {
+      pathCommands.push(`M ${x1} ${y}`);
+    } else {
+      pathCommands.push(`L ${x1} ${y}`);
+    }
+
+    pathCommands.push(`L ${x2} ${y}`);
+  });
+  return pathCommands.join(' ');
+}
+
 // UI FUNCTIONS
+function drawChart() {
+  const chartData = generateChartData();
+  if (!chartData || chartData.blocks.length === 0) return;
+  const svg = document.getElementById('pace-chart');
+
+  const config = {
+    width: 600,
+    height: 300,
+    paddingTop: 30,
+    paddingBottom: 40,
+    paddingLeft: 60,
+    paddingRight: 20,
+  };
+
+  const drawableWidth = config.width - config.paddingLeft - config.paddingRight;
+  const drawableHeight = config.height - config.paddingTop - config.paddingBottom;
+
+  const paceBuffer = 30;
+  const minPaceBuffer = Math.max(0, chartData.fastPace - paceBuffer);
+  const maxPaceBuffer = chartData.slowPace + paceBuffer;
+
+  const pathString = generateStepPath(
+    chartData.blocks,
+    chartData.maxDistance,
+    minPaceBuffer,
+    maxPaceBuffer,
+    config,
+  );
+
+  document.getElementById('step-line').setAttribute('d', pathString);
+  renderYAxis(minPaceBuffer, maxPaceBuffer, config);
+  renderXAxis(chartData.maxDistance, config);
+}
+
+function renderYAxis(minPaceBuffer, maxPaceBuffer, config) {
+  const gridLayer = document.getElementById('grid-layer');
+  gridLayer.innerHTML = '';
+  const drawableHeight = config.height - config.paddingTop - config.paddingBottom;
+  const paceStep = 60;
+  const startPace = Math.floor(minPaceBuffer / paceStep) * paceStep;
+
+  for (let pace = startPace; pace <= maxPaceBuffer; pace += paceStep) {
+    const y = getYPixel(pace, minPaceBuffer, maxPaceBuffer, drawableHeight, config.paddingTop);
+
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    line.setAttribute('x1', config.paddingLeft);
+    line.setAttribute('x2', config.width - config.paddingRight);
+    line.setAttribute('y1', y);
+    line.setAttribute('y2', y);
+    line.setAttribute('stroke', '#e5e7eb');
+    line.setAttribute('stroke-dasharray', '4');
+
+    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    text.setAttribute('x', config.paddingLeft - 8);
+    text.setAttribute('y', y + 4);
+    text.setAttribute('fill', '#6b7280');
+    text.setAttribute('font-size', '12');
+    text.setAttribute('text-anchor', 'end');
+    text.textContent = formatTimes(pace);
+
+    gridLayer.appendChild(line);
+    gridLayer.appendChild(text);
+  }
+}
+
+function renderXAxis(maxDistance, config) {
+  const xAxisLayer = document.getElementById('x-axis-layer');
+  xAxisLayer.innerHTML = '';
+
+  const drawableWidth = config.width - config.paddingLeft - config.paddingRight;
+  const step = maxDistance > 10 ? 5 : 1;
+
+  for (let dist = 0; dist <= maxDistance; dist += step) {
+    const x = getXPixel(dist, maxDistance, drawableWidth, config.paddingLeft);
+
+    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    text.setAttribute('x', x);
+    text.setAttribute('y', config.height - config.paddingBottom + 20);
+    text.setAttribute('fill', '#6b7280');
+    text.setAttribute('font-size', '12');
+    text.setAttribute('text-anchor', 'middle');
+    text.textContent = `${dist} km`;
+    xAxisLayer.appendChild(text);
+  }
+}
+
 // Progress Bar
 function calculateProgressHue(percent) {
   if (percent <= 25) return (percent / 25) * 30;
